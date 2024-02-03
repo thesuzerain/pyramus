@@ -1,11 +1,11 @@
 <script setup>
 import { useRoute } from 'vue-router'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
-import { test } from '@/helpers/test';
+import { testHelloFromRust } from '@/helpers/test';
 import { ref } from 'vue';
 const route = useRoute()
 const breadcrumbs = useBreadcrumbs()
-const testString = ref(test())
+const testString = ref(testHelloFromRust())
 
 breadcrumbs.setRootContext({ name: 'Home', link: route.path })
 

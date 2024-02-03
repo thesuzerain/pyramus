@@ -15,6 +15,14 @@ export default new createRouter({
         breadcrumb: [{ name: 'Home' }],
       },
     },
+    {
+      path: '/editor',
+      name: 'Editor',
+      component: Pages.Editor,
+      meta: {
+        breadcrumb: [{ name: 'Editor' }]
+      }
+    }
 
   ],
   linkActiveClass: 'router-link-active',
