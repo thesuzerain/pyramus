@@ -1,0 +1,13 @@
+[package]
+name = "pyramus"
+version = "0.0.1"
+description = "Pyramus API"
+authors = ["Wyatt Verchere <wverchere@gmail.com>"]
+repository = ""
+
+
+[dependencies]
+serde_json = { workspace = true }
+serde = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+futures = { workspace = true }

@@ -1,0 +1,15 @@
+[package]
+name = "pyramus-wasm"
+version = "0.0.1"
+description = "Pyramus WASM Hooks"
+authors = ["Wyatt Verchere <wverchere@gmail.com>"]
+repository = ""
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = { workspace = true }
+serde-wasm-bindgen = "0.6"
+wasm-bindgen-futures = { workspace = true }
