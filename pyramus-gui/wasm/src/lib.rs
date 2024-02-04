@@ -1,5 +1,8 @@
 use wasm_bindgen::prelude::*;
 
+pub mod image;
+pub mod render;
+
 #[wasm_bindgen(start)]
 pub fn init_app() {
     println!("Hello from Rust logging!");

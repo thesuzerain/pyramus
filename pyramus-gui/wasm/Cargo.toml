@@ -10,6 +10,9 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+pyramus = { path = "../../pyramus" }
 wasm-bindgen = { workspace = true }
 serde-wasm-bindgen = "0.6"
 wasm-bindgen-futures = { workspace = true }
+resvg = { workspace = true }
+web-sys = { workspace = true }

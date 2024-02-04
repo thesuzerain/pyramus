@@ -17,8 +17,8 @@
     "build-wasm-prod": "wasm-pack build ./wasm --release --target=web",
     "watch:wasm": "cargo watch --postpone --watch-when-idle --workdir=wasm --shell \"wasm-pack build . --dev --target=web -- --color=always\"",
     "watch:wasm-profiling": "cargo watch --postpone --watch-when-idle --workdir=wasm --shell \"wasm-pack build . --profiling --target=web -- --color=always\"",
-    "print-building-help": "echo 'Graphite project failed to build. Did you remember to `npm install` the dependencies in `/frontend`?'",
-    "print-linting-help": "echo 'Graphite project had lint errors, or may have otherwise failed. In the latter case, did you remember to `npm install` the dependencies in `/frontend`?'"
+    "print-building-help": "echo 'Pyramus project failed to build. Did you remember to `npm install` the dependencies in `/pyramus-gui`, run `cargo install wasm-pack`, and `cargo install cargo-watch`?'",
+    "print-linting-help": "echo 'Pyramus project had lint errors, or may have otherwise failed. In the latter case, did you remember to `npm install` the dependencies in `/frontend`?'"
   },
   "dependencies": {
     "class-transformer": "^0.5.1",
@@ -36,9 +36,9 @@
     "vue-router": "4.2.1",
     "vue-virtual-scroller": "2.0.0-beta.8"
   },
-	"optionalDependencies": {
-		"wasm-pack": "0.12.1"
-	},
+  "optionalDependencies": {
+    "wasm-pack": "^0.0.0"
+  },
   "devDependencies": {
     "@rollup/plugin-alias": "^4.0.4",
     "@sveltejs/vite-plugin-svelte": "^2.4.2",

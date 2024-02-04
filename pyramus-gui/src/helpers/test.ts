@@ -1,8 +1,11 @@
-import { testString } from "@/../wasm/pkg/pyramus_wasm.js";
+import { testString, wasmMemory } from "@/../wasm/pkg/pyramus_wasm.js";
 
-export function test() {
-	let f = testString();
-	console.log(f);
-	return f;
+export function testHelloFromRust() {
+	return testString();
+}
+
+export async function getBuffer() {
+	let wasmImport = await wasmMemory();
+	return wasmImport.buffer;
 }
 

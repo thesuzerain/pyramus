@@ -4,10 +4,18 @@ version = "0.0.1"
 description = "Pyramus API"
 authors = ["Wyatt Verchere <wverchere@gmail.com>"]
 repository = ""
+edition = "2021"
 
 
 [dependencies]
 serde_json = { workspace = true }
 serde = { workspace = true }
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros"] }
 futures = { workspace = true }
+resvg = { workspace = true }
+
+# TODO: Remove these dependencies
+wasm-bindgen = { workspace = true }
+serde-wasm-bindgen = "0.6"
+wasm-bindgen-futures = { workspace = true }
+web-sys = { workspace = true}

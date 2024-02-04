@@ -14,8 +14,15 @@ export async function initWasm() {
 	// eslint-disable-next-line import/no-cycle
 	await init();
 	wasmImport = await wasmMemory();
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	(window as any).imageCanvases = {};
+}
+
+export function getWasm(): WasmRawInstance {
+	if (wasmImport === undefined) throw new Error("WASM module not initialized");
+	return wasmImport;
+}
+
+export function getRawBuffer(): ArrayBuffer {
+	return getWasm().buffer;
 }
 
 // TODO: Editor function here

@@ -45,25 +45,25 @@ document.querySelector('body').addEventListener('auxclick', function (e) {
   <div v-else class="container">
     <div class="nav-container">
       <div class="nav-section">
-        <suspense>
-          <AccountsCard ref="accounts" mode="small" />
-        </suspense>
         <div class="pages-list">
           <RouterLink v-tooltip="'Home'" to="/" class="btn icon-only collapsed-button">
             <PlusIcon />
           </RouterLink>
-          <Suspense>
-            <InstanceCreationModal ref="installationModal" />
-          </Suspense>
+          <RouterLink v-tooltip="'Editor Raw'" to="/editor/raw" class="btn icon-only collapsed-button">
+            <PlusIcon />
+          </RouterLink>
+          <RouterLink v-tooltip="'Editor SVG'" to="/editor/svg" class="btn icon-only collapsed-button">
+            <PlusIcon />
+          </RouterLink>
+
         </div>
       </div>
       <div class="settings pages-list">
         <Button
-          v-tooltip="'Create profile'"
+          v-tooltip="'Create button'"
           class="sleek-primary collapsed-button"
           icon-only
-          :disabled="offline"
-          @click="() => $refs.installationModal.show()"
+          @click="() => console.log('You clicked the plus button!')"
         >
           <PlusIcon />
         </Button>
