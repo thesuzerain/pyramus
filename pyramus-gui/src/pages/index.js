@@ -1,4 +1,5 @@
 import Index from './Index.vue'
-import Editor from './Editor.vue'
+import EditorRaw from './EditorRaw.vue'
+import EditorSvg from './EditorSvg.vue'
 
-export { Index, Editor }
+export { Index, EditorRaw, EditorSvg }

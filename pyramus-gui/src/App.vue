@@ -49,9 +49,13 @@ document.querySelector('body').addEventListener('auxclick', function (e) {
           <RouterLink v-tooltip="'Home'" to="/" class="btn icon-only collapsed-button">
             <PlusIcon />
           </RouterLink>
-          <RouterLink v-tooltip="'Editor'" to="/editor" class="btn icon-only collapsed-button">
+          <RouterLink v-tooltip="'Editor Raw'" to="/editor/raw" class="btn icon-only collapsed-button">
             <PlusIcon />
           </RouterLink>
+          <RouterLink v-tooltip="'Editor SVG'" to="/editor/svg" class="btn icon-only collapsed-button">
+            <PlusIcon />
+          </RouterLink>
+
         </div>
       </div>
       <div class="settings pages-list">

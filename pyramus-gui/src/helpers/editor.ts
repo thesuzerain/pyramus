@@ -1,5 +1,13 @@
-import { imageBufferPointer, generate_checker_board } from "@/../wasm/pkg/pyramus_wasm.js";
+import { imageBufferPointer, generate_checker_board, testRenderResvg, testRenderStringResvg } from "@/../wasm/pkg/pyramus_wasm.js";
 import {  getRawBuffer } from "@/../src/helpers/state";
+
+export function testRender(canvas : HTMLCanvasElement ) {
+	testRenderResvg(canvas);
+}
+
+export function testRenderString(canvas : HTMLCanvasElement ) {
+	return testRenderStringResvg(canvas)
+}
 
 export function getImageBufferPointer() {
 	return imageBufferPointer();

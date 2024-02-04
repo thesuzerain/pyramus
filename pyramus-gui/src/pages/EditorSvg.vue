@@ -1,30 +1,23 @@
 <script setup>
 import { useRoute } from 'vue-router'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
 const route = useRoute()
 const breadcrumbs = useBreadcrumbs()
 
-breadcrumbs.setContext({ name: 'Editor', link: route.path })
+breadcrumbs.setContext({ name: 'EditorSvg', link: route.path })
 
-import { drawCheckerBoard, clearCanvas } from '@/helpers/editor'
+import { testRenderString } from '@/helpers/editor'
 
-const canvas = ref(null)
+const canvasString = ref('')
 
-onMounted(async () => {
-  clearCanvas(canvas.value)
-
-  await drawCheckerBoard(canvas.value);
-  setInterval(async () => {
-    await drawCheckerBoard(canvas.value);
-  }, 1000);
-})
+canvasString.value = testRenderString()
 
 </script>
 
 <template>
   <div class="page-container">
-    <canvas id="canvas" ref="canvas" class="canvas"   width="20" height="20" ></canvas>
+    <div v-html="canvasString"></div>
   </div>
 </template>
 
@@ -38,8 +31,15 @@ onMounted(async () => {
 }
 .canvas {
   // Todo: changeable size
-  width: 25rem;
-  height: 25rem;
+  width: 10rem;
+  height: 10rem;
+  image-rendering: pixelated; 
+  image-rendering: crisp-edges
+}
+.canvas2 {
+  // Todo: changeable size
+  width: 20rem;
+  height: 20rem;
   image-rendering: pixelated; 
   image-rendering: crisp-edges
 }

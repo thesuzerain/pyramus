@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 
 pub mod image;
-pub mod log;
+pub mod render;
 
 #[wasm_bindgen(start)]
 pub fn init_app() {

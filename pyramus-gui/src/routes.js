@@ -16,13 +16,22 @@ export default new createRouter({
       },
     },
     {
-      path: '/editor',
-      name: 'Editor',
-      component: Pages.Editor,
+      path: '/editor/raw',
+      name: 'Editor Raw',
+      component: Pages.EditorRaw,
       meta: {
-        breadcrumb: [{ name: 'Editor' }]
+        breadcrumb: [{ name: 'Editor Raw' }]
       }
-    }
+    },
+    {
+      path: '/editor/svg',
+      name: 'Editor SVG',
+      component: Pages.EditorSvg,
+      meta: {
+        breadcrumb: [{ name: 'Editor SVG' }]
+      }
+    },
+
 
   ],
   linkActiveClass: 'router-link-active',
