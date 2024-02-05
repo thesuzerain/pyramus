@@ -1,31 +1,40 @@
 {
-	"compilerOptions": {
-		"target": "ES2020",
-		"module": "esnext",
-		"strict": true,
-		"importHelpers": true,
-		"moduleResolution": "node",
-		"experimentalDecorators": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"sourceMap": true,
-		"types": ["node", "svelte", "svelte/store", "svelte/motion", "svelte/transition", "svelte/animate", "svelte/easing"],
-		"baseUrl": ".",
-		"paths": {
-			"/*": ["./*"],
-			"@pyramus-gui/*": ["./*"],
-			"@pyramus/*": ["src/*"]
-		},
-		"lib": ["esnext", "dom", "dom.iterable", "scripthost"]
-	},
-	"include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.svelte", "*.ts", "*.js", "*.cjs"],
-	"exclude": ["node_modules"],
-	"ts-node": {
-		"compilerOptions": {
-			"module": "commonjs",
-			"useDefineForClassFields": false,
-			"noImplicitOverride": true
-		}
-	}
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "esnext",
+    "strict": true,
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "/*": ["./*"],
+      "@pyramus-gui/*": ["./*"],
+      "@pyramus/*": ["src/*"]
+    },
+    "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.vue",
+    "*.ts",
+    "*.js",
+    "*.cjs",
+    "src/pages/index.ts"
+  ],
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs",
+      "useDefineForClassFields": false,
+      "noImplicitOverride": true
+    }
+  }
 }

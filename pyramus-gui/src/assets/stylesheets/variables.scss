@@ -1,82 +1,81 @@
 html {
-    --dark-color-base: #a1a5b4;
-    --dark-color-contrast: #f5f6f8;
-    
-    --card-border-width: 1px;
-    --button-border-width: 1px;
-    --divider-border-width: 1px;
-  
-    --round-little: 5px;
-    --round-univ: 9px;
-    --round-card: 13px;
-  
-    --gap-xs: 0.25rem;
-    --gap-sm: 0.5rem;
-    --gap-md: 0.75rem;
-    --gap-lg: 1rem;
-    --gap-xl: 1.25rem;
-  
-    --radius-xs: var(--round-little);
-    --radius-sm: var(--round-univ);
-    --radius-md: var(--round-univ);
-    --radius-lg: var(--round-univ);
-    --radius-xl: var(--round-univ);
-    --radius-max: 999999999px;
-  }
-  
-  .dark-mode,
-  .dark {
-    --color-bg: #16181c;
-    --color-raised-bg: #24262b;
-    --color-super-raised-bg: #40434a;
-    --color-alt-bg: #202228;
-    --color-button-bg: rgb(51, 54, 61);
-  
-    --color-divider: rgba(176, 169, 207, 0.2);
-    --color-button-divider: transparent;
-    --color-card-divider: rgba(176, 169, 207, 0.1);
-  
-    --color-tag-bg: var(--color-button-bg);
-  
-    --filter-hover: brightness(120%);
-    --filter-active: brightness(140%);
-  
-    --color-base: var(--dark-color-base);
-    --color-secondary: #96a2b0;
-    --color-contrast: var(--dark-color-contrast);
-    --color-accent-contrast: #000000;
-  
-    --color-red: #ff3e3e;
-    --color-orange: rgb(238, 144, 37);
-    --color-green: #1cc538;
-    --color-blue: #3184f0;
-    --color-purple: #a574e6;
-    --color-gray: #acadb1;
-  
-    --color-red-bg: rgba(224, 56, 56, 0.322);
-    --color-blue-bg: rgba(66, 115, 252, 0.3);
-  
-    --color-brand: var(--color-purple);
-    --color-brand-highlight: #a574e6;
-    --color-brand-shadow: rgb(109, 67, 165);
-  
-    --shadow-inset-lg: inset 0px -2px 2px hsla(221, 39%, 11%, 0.1);
-    --shadow-inset: inset 0px -2px 2px hsla(221, 39%, 11%, 0.05);
-    --shadow-inset-sm: inset 0px -1px 1px hsla(221, 39%, 11%, 0.25);
-  
-    --shadow-raised-lg: 0px 2px 4px hsla(221, 39%, 11%, 0.2);
-    --shadow-raised: 0px -2px 4px hsla(221, 39%, 11%, 0.1);
-    --shadow-floating: 2px 2px 24px 0px rgba(0, 0, 0, 0.15), 3px 6px 48px 16px rgba(0, 0, 0, 0.15);
-    --shadow-card: rgba(0, 0, 0, 0.25) 0px 2px 4px 0px;
-  
-    --color-tooltip-text: var(--color-base);
-    --color-tooltip-bg: var(--color-button-bg);
-  }
-  
-  .oled-mode {
-    @extend .dark-mode;
-    --color-bg: #000000;
-    --color-raised-bg: #101013;
-    --color-button-bg: #222329;
-  }
-  
+  --dark-color-base: #a1a5b4;
+  --dark-color-contrast: #f5f6f8;
+
+  --card-border-width: 1px;
+  --button-border-width: 1px;
+  --divider-border-width: 1px;
+
+  --round-little: 5px;
+  --round-univ: 9px;
+  --round-card: 13px;
+
+  --gap-xs: 0.25rem;
+  --gap-sm: 0.5rem;
+  --gap-md: 0.75rem;
+  --gap-lg: 1rem;
+  --gap-xl: 1.25rem;
+
+  --radius-xs: var(--round-little);
+  --radius-sm: var(--round-univ);
+  --radius-md: var(--round-univ);
+  --radius-lg: var(--round-univ);
+  --radius-xl: var(--round-univ);
+  --radius-max: 999999999px;
+}
+
+.dark-mode,
+.dark {
+  --color-bg: #16181c;
+  --color-raised-bg: #24262b;
+  --color-super-raised-bg: #40434a;
+  --color-alt-bg: #202228;
+  --color-button-bg: rgb(51, 54, 61);
+
+  --color-divider: rgba(176, 169, 207, 0.2);
+  --color-button-divider: transparent;
+  --color-card-divider: rgba(176, 169, 207, 0.1);
+
+  --color-tag-bg: var(--color-button-bg);
+
+  --filter-hover: brightness(120%);
+  --filter-active: brightness(140%);
+
+  --color-base: var(--dark-color-base);
+  --color-secondary: #96a2b0;
+  --color-contrast: var(--dark-color-contrast);
+  --color-accent-contrast: #000000;
+
+  --color-red: #ff3e3e;
+  --color-orange: rgb(238, 144, 37);
+  --color-green: #1cc538;
+  --color-blue: #3184f0;
+  --color-purple: #a574e6;
+  --color-gray: #acadb1;
+
+  --color-red-bg: rgba(224, 56, 56, 0.322);
+  --color-blue-bg: rgba(66, 115, 252, 0.3);
+
+  --color-brand: var(--color-purple);
+  --color-brand-highlight: #a574e6;
+  --color-brand-shadow: rgb(109, 67, 165);
+
+  --shadow-inset-lg: inset 0px -2px 2px hsla(221, 39%, 11%, 0.1);
+  --shadow-inset: inset 0px -2px 2px hsla(221, 39%, 11%, 0.05);
+  --shadow-inset-sm: inset 0px -1px 1px hsla(221, 39%, 11%, 0.25);
+
+  --shadow-raised-lg: 0px 2px 4px hsla(221, 39%, 11%, 0.2);
+  --shadow-raised: 0px -2px 4px hsla(221, 39%, 11%, 0.1);
+  --shadow-floating: 2px 2px 24px 0px rgba(0, 0, 0, 0.15), 3px 6px 48px 16px rgba(0, 0, 0, 0.15);
+  --shadow-card: rgba(0, 0, 0, 0.25) 0px 2px 4px 0px;
+
+  --color-tooltip-text: var(--color-base);
+  --color-tooltip-bg: var(--color-button-bg);
+}
+
+.oled-mode {
+  @extend .dark-mode;
+  --color-bg: #000000;
+  --color-raised-bg: #101013;
+  --color-button-bg: #222329;
+}

@@ -16,5 +16,5 @@ pub fn test_string() -> String {
 /// Provides a handle to access the raw WASM memory
 #[wasm_bindgen(js_name = wasmMemory)]
 pub fn wasm_memory() -> JsValue {
-	wasm_bindgen::memory()
+    wasm_bindgen::memory()
 }
