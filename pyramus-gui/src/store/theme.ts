@@ -7,13 +7,13 @@ type ThemeStore = {
 }
 
 export const useTheming = defineStore('themeStore', {
-  state: () : ThemeStore => ({
+  state: (): ThemeStore => ({
     themeOptions: ['dark', 'light', 'oled'],
     advancedRendering: true,
     selectedTheme: 'dark',
   }),
   actions: {
-    setThemeState(newTheme : string) {
+    setThemeState(newTheme: string) {
       if (this.themeOptions.includes(newTheme)) this.selectedTheme = newTheme
       else console.warn('Selected theme is not present. Check themeOptions.')
 

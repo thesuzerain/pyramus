@@ -16,7 +16,7 @@ type BreadcrumbsStore = {
 declare module 'vue-router' {
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface RouteMeta {
-    breadcrumb: Breadcrumb[];
+    breadcrumb: Breadcrumb[]
   }
 }
 
@@ -25,14 +25,14 @@ export const useBreadcrumbs = defineStore('breadcrumbsStore', {
     names: new Map(),
   }),
   actions: {
-    getName(route : string) {
+    getName(route: string) {
       return this.names.get(route) ?? ''
     },
-    setName(route  : string, title  : string) {
+    setName(route: string, title: string) {
       this.names.set(route, title)
     },
     // resets breadcrumbs to only included ones as to not have stale breadcrumbs
-    resetToNames(breadcrumbs : Breadcrumb[]) {
+    resetToNames(breadcrumbs: Breadcrumb[]) {
       // names is an array of every breadcrumb.name that starts with a ?
       const names = breadcrumbs
         .filter((breadcrumb) => breadcrumb.name.charAt(0) === '?')
@@ -44,10 +44,10 @@ export const useBreadcrumbs = defineStore('breadcrumbsStore', {
         }
       }
     },
-    setContext(context : Breadcrumb) {
+    setContext(context: Breadcrumb) {
       this.context = context
     },
-    setRootContext(context : Breadcrumb) {
+    setRootContext(context: Breadcrumb) {
       this.rootContext = context
     },
   },

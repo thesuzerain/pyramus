@@ -11,18 +11,16 @@ const themeStore = useTheming()
 const isLoading = ref(true)
 const loading = useLoading()
 
-
 defineExpose({
   initialize: async () => {
     isLoading.value = false
     themeStore.setThemeState('dark')
   },
-  failure: async (e : string) => {
+  failure: async (e: string) => {
     isLoading.value = false
     console.error(e)
   },
 })
-
 
 document.querySelector('body')?.addEventListener('auxclick', function (e) {
   // disables middle click -> new tab
@@ -40,7 +38,6 @@ document.querySelector('body')?.addEventListener('auxclick', function (e) {
 </script>
 
 <template>
-
   <SplashScreen v-if="isLoading" app-loading />
   <div v-else class="container">
     <div class="nav-container">
@@ -49,13 +46,20 @@ document.querySelector('body')?.addEventListener('auxclick', function (e) {
           <RouterLink v-tooltip="'Home'" to="/" class="btn icon-only collapsed-button">
             <PlusIcon />
           </RouterLink>
-          <RouterLink v-tooltip="'Editor Raw'" to="/editor/raw" class="btn icon-only collapsed-button">
+          <RouterLink
+            v-tooltip="'Editor Raw'"
+            to="/editor/raw"
+            class="btn icon-only collapsed-button"
+          >
             <PlusIcon />
           </RouterLink>
-          <RouterLink v-tooltip="'Editor SVG'" to="/editor/svg" class="btn icon-only collapsed-button">
+          <RouterLink
+            v-tooltip="'Editor SVG'"
+            to="/editor/svg"
+            class="btn icon-only collapsed-button"
+          >
             <PlusIcon />
           </RouterLink>
-
         </div>
       </div>
       <div class="settings pages-list">
@@ -186,7 +190,6 @@ document.querySelector('body')?.addEventListener('auxclick', function (e) {
       text-decoration: none;
     }
   }
-
 }
 
 .collapsed-button {
@@ -213,5 +216,4 @@ document.querySelector('body')?.addEventListener('auxclick', function (e) {
   height: 100%;
   gap: 1rem;
 }
-
 </style>

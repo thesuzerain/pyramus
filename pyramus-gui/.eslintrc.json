@@ -11,14 +11,14 @@
     "parser": "@typescript-eslint/parser"
   },
   "ignorePatterns": [
-      // Ignore generated directories
-      "node_modules/",
-      "dist/",
-      "pkg/",
-      "wasm/pkg/",
-      // Don't ignore JS and TS dotfiles in this folder
-      "!.*.js",
-      "!.*.ts"
+    // Ignore generated directories
+    "node_modules/",
+    "dist/",
+    "pkg/",
+    "wasm/pkg/",
+    // Don't ignore JS and TS dotfiles in this folder
+    "!.*.js",
+    "!.*.ts"
   ],
   "plugins": ["vue", "@typescript-eslint", "import"],
   "rules": {
@@ -29,17 +29,22 @@
     "vue/multi-word-component-names": "off",
     "import/no-named-as-default": "off",
 
-    		// TypeScript plugin config (for TS-specific linting)
-		"@typescript-eslint/indent": "off",
-		"@typescript-eslint/camelcase": "off",
-		"@typescript-eslint/no-use-before-define": "off",
-		"@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "ignoreRestSiblings": true }],
-		"@typescript-eslint/consistent-type-imports": "error",
-		"@typescript-eslint/consistent-type-definitions": ["error", "type"],
-		"@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }],
-		"@typescript-eslint/consistent-indexed-object-style": ["error", "record"],
-		"@typescript-eslint/consistent-generic-constructors": ["error", "constructor"],
-		"@typescript-eslint/ban-types": ["error", { "types": { "null": "Use `undefined` instead." } }]
-
+    // TypeScript plugin config (for TS-specific linting)
+    "@typescript-eslint/indent": "off",
+    "@typescript-eslint/camelcase": "off",
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "ignoreRestSiblings": true }
+    ],
+    "@typescript-eslint/consistent-type-imports": "error",
+    "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+    "@typescript-eslint/consistent-type-assertions": [
+      "error",
+      { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }
+    ],
+    "@typescript-eslint/consistent-indexed-object-style": ["error", "record"],
+    "@typescript-eslint/consistent-generic-constructors": ["error", "constructor"],
+    "@typescript-eslint/ban-types": ["error", { "types": { "null": "Use `undefined` instead." } }]
   }
 }

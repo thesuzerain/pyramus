@@ -89,7 +89,6 @@
   </button>
 </template>
 
-
 <script setup lang="ts">
 // TODO: Rewrite this whole component
 
@@ -108,7 +107,7 @@ const props = defineProps({
     default: false,
   },
   action: {
-    type: Function as PropType<(payload : MouseEvent) => void>,
+    type: Function as PropType<(payload: MouseEvent) => void>,
     default: null,
   },
   color: {

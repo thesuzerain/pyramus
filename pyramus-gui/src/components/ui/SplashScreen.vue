@@ -1,7 +1,5 @@
 <template>
-  <div class="page-loading" :class="{ 'app-loading': appLoading }">
-    Loading...
-  </div>
+  <div class="page-loading" :class="{ 'app-loading': appLoading }">Loading...</div>
 </template>
 
 <script setup lang="ts">
