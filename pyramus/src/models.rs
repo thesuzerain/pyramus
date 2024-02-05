@@ -1,7 +1,5 @@
 use std::sync::Arc;
 
-use wasm_bindgen::prelude::*;
-
 #[derive(Debug, Clone, Copy)]
 pub struct StagedItemId(u64);
 
@@ -70,7 +68,7 @@ pub enum ItemImage {
 // TODO: Remove
 pub fn example_stage() -> Stage {
     let mut stage = Stage::new();
-    let root_id = stage.add_item(Item::Text(ItemText { text: "Hello, world!".to_string() }), None);
+    stage.add_item(Item::Text(ItemText { text: "Hello, world!".to_string() }), None);
     stage.add_item(Item::Image(ItemImage::Jpeg( 
         include_bytes!("../../testimg.jpg").to_vec().into()
     )), None);

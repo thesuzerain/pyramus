@@ -1,9 +1,6 @@
 use crate::{log, models::{Item, ItemImage, Stage, StagedItem}};
-use resvg::{tiny_skia, usvg::{self, NodeExt, Transform, TreeWriting, XmlOptions}};
+use resvg::{tiny_skia, usvg::{self, Transform, TreeWriting, XmlOptions}};
 use wasm_bindgen::{Clamped, JsCast, JsValue};
-use std::ffi::OsStr;
-use usvg::{TreeParsing};
-use web_sys::window;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 impl Stage {
@@ -36,7 +33,8 @@ impl StagedItem {
 impl Item {
     pub fn to_usvg_node(&self, transform : usvg::Transform) -> usvg::Node {
         match &self {
-            Item::Text(text) => {
+            Item::Text(_text) => {
+                // TODO: Add text rendering
                 usvg::Node::new(usvg::NodeKind::Text(usvg::Text {
                     id: String::new(),
                     transform,
@@ -69,20 +67,14 @@ impl Item {
     }
 }
 
-// example_stage
-
 pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> Result<(), JsValue> {
     let context = canvas.get_context("2d").unwrap().unwrap().dyn_into::<CanvasRenderingContext2d>().unwrap();
     let canvas_width = canvas.width();
     let canvas_height = canvas.height();
 
-
-    let options = usvg::Options::default();
     let tree = stage.to_usvg_tree();
-    log::log("Made tree");
     let resvg_tree = resvg::Tree::from_usvg(&tree);
 
-    // pixmap_size = pixmap_size.scale_to_width(pixmap_size.width() * 80). unwrap();
     let tree_size = resvg_tree.size.to_int_size();
 
     let width_scale = canvas_width as f32 / tree_size.width() as f32;
@@ -112,53 +104,9 @@ pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> Result<(), JsValue> 
     Ok(())
 }
 
-pub fn render_string(stage: &Stage, canvas: &HtmlCanvasElement) -> Result<String, JsValue> {
+pub fn render_string(stage: &Stage) -> Result<String, JsValue> {
     let tree = stage.to_usvg_tree();
     let s = tree.to_string(&XmlOptions::default());
     log::log(&format!("Tree: {}", s));
     Ok(s)
 }
-
-// pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> Result<(), JsValue> {
-//     let context = canvas.get_context("2d").unwrap().unwrap().dyn_into::<CanvasRenderingContext2d>().unwrap();
-//     let canvas_width = canvas.width();
-//     let canvas_height = canvas.height();
-
-
-//     let example = include_str!("../../pyramus-gui/src/assets/external/discord.svg");
-//     log::log(&format!("Example: {}", example));
-
-//     let options = usvg::Options::default();
-//     let tree = usvg::Tree::from_str(example, &options).unwrap();
-//     log::log("Made tree");
-//     let resvg_tree = resvg::Tree::from_usvg(&tree);
-
-//     // pixmap_size = pixmap_size.scale_to_width(pixmap_size.width() * 80). unwrap();
-//     let tree_size = resvg_tree.size.to_int_size();
-
-//     let width_scale = canvas_width as f32 / tree_size.width() as f32;
-//     let height_scale = canvas_width as f32 / tree_size.height() as f32;
-
-//     let min_scale = width_scale.min(height_scale);
-//     log::log(&format!("Width scale: {}", width_scale));
-//     log::log(&format!("Height scale: {}", height_scale));
-
-//     let transform = Transform::from_scale(min_scale, min_scale);
-
-//     let mut pixmap = tiny_skia::Pixmap::new(canvas_width, canvas_height).unwrap();
-//     log::log("Made pixmap");
-    
-//     resvg_tree.render(transform, &mut pixmap.as_mut());
-//     log::log(&format!("Pixmap size: {:?}", tree_size));
-    
-//     let array: Clamped<&[u8]> = Clamped(pixmap.data());
-//     log::log(format!("Sizes: {} {}", tree_size.width(), tree_size.height()).as_str());
-
-//     let image_data = web_sys::ImageData::new_with_u8_clamped_array_and_sh(array, canvas_width, canvas_height)?;
-    
-//     log::log(&format!("Image data: {:?}", image_data));
-//     context.put_image_data(&image_data, 0.0, 0.0).unwrap();
-//     log::log("Put image data");
-
-//     Ok(())
-// }
