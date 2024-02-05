@@ -10,16 +10,17 @@
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"sourceMap": true,
-		"types": ["node", "svelte", "svelte/store", "svelte/motion", "svelte/transition", "svelte/animate", "svelte/easing"],
+		"types": ["node"],
 		"baseUrl": ".",
 		"paths": {
+			"@/*": ["src/*"],
 			"/*": ["./*"],
 			"@pyramus-gui/*": ["./*"],
 			"@pyramus/*": ["src/*"]
 		},
 		"lib": ["esnext", "dom", "dom.iterable", "scripthost"]
 	},
-	"include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.svelte", "*.ts", "*.js", "*.cjs"],
+	"include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "*.ts", "*.js", "*.cjs", "src/pages/index.ts"],
 	"exclude": ["node_modules"],
 	"ts-node": {
 		"compilerOptions": {

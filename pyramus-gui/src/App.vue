@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { RouterView, RouterLink } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
@@ -17,14 +17,14 @@ defineExpose({
     isLoading.value = false
     themeStore.setThemeState('dark')
   },
-  failure: async (e) => {
+  failure: async (e : string) => {
     isLoading.value = false
     console.error(e)
   },
 })
 
 
-document.querySelector('body').addEventListener('auxclick', function (e) {
+document.querySelector('body')?.addEventListener('auxclick', function (e) {
   // disables middle click -> new tab
   if (e.button === 1) {
     e.preventDefault()
@@ -34,7 +34,7 @@ document.querySelector('body').addEventListener('auxclick', function (e) {
       bubbles: true,
       cancelable: true,
     })
-    e.target.dispatchEvent(event)
+    if (e.target) e.target.dispatchEvent(event)
   }
 })
 </script>

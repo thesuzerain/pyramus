@@ -9,9 +9,9 @@
     {{ breadcrumbData.resetToNames(breadcrumbs) }}
     <div v-for="breadcrumb in breadcrumbs" :key="breadcrumb.name" class="breadcrumbs__item">
       <router-link
-        v-if="breadcrumb.link"
+        v-if="breadcrumb.link && typeof($route.params.id) == 'string'"
         :to="{
-          path: breadcrumb.link.replace('{id}', encodeURIComponent($route.params.id)),
+          path: (typeof breadcrumb.link === 'string' ? breadcrumb.link : '').replace('{id}', encodeURIComponent($route.params.id)),
           query: breadcrumb.query,
         }"
         >{{
@@ -30,17 +30,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Button from '@/components/ui/Button.vue'
 import { ChevronRightIcon, ChevronLeftIcon} from '@/assets/icons'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
+import type { Breadcrumb } from '@/store/breadcrumbs'
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 
 const route = useRoute()
 
 const breadcrumbData = useBreadcrumbs()
-const breadcrumbs = computed(() => {
+const breadcrumbs = computed(() : Breadcrumb[] => {
   const additionalContext =
     route.meta.useContext === true
       ? breadcrumbData.context

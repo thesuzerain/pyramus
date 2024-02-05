@@ -1,12 +1,11 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory  } from 'vue-router'
 import * as Pages from '@/pages'
 
 /**
  * Configures application routing. Add page to pages/index and then add to route table here.
  */
-export default new createRouter({
-  history: createWebHistory(),
-  routes: [
+const routes =
+  [
     {
       path: '/',
       name: 'Home',
@@ -33,7 +32,11 @@ export default new createRouter({
     },
 
 
-  ],
+  ]
+
+export default createRouter({
+  history: createWebHistory(),
+  routes,
   linkActiveClass: 'router-link-active',
   linkExactActiveClass: 'router-link-exact-active',
   scrollBehavior() {

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
@@ -12,8 +12,10 @@ import {  clearCanvas, testRender } from '@/helpers/editor'
 const canvas = ref(null)
 
 onMounted(async () => {
-  clearCanvas(canvas.value) // todo: unneeded?
-  testRender(canvas.value)
+  if (canvas.value) {
+    clearCanvas(canvas.value) // todo: unneeded?
+    testRender(canvas.value)
+    }
 })
 </script>
 

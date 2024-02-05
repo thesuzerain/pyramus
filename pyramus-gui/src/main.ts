@@ -16,7 +16,13 @@ app.use(router)
 app.use(pinia)
 app.use(FloatingVue)
 
-const mountedApp = app.mount('#app')
+// TODO: typing is awkward here
+type AppInitialization = {
+  initialize: () => Promise<void>;
+  failure: (e: Error) => void;
+}
+const mountedApp = app.mount('#app') as unknown as  AppInitialization
+
 initWasm()
   .then(() => {
     // First, redirect to other landing page if we have that setting

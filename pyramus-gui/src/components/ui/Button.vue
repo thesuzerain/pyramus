@@ -90,12 +90,13 @@
 </template>
 
 
-<script setup>
+<script setup lang="ts">
 // TODO: Rewrite this whole component
 
 import { ExternalIcon, UnknownIcon } from '@/assets/icons'
 
 import { computed } from 'vue'
+import type { PropType } from 'vue'
 
 const props = defineProps({
   link: {
@@ -107,7 +108,7 @@ const props = defineProps({
     default: false,
   },
   action: {
-    type: Function,
+    type: Function as PropType<(payload : MouseEvent) => void>,
     default: null,
   },
   color: {

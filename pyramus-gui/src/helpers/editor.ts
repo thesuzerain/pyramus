@@ -5,8 +5,8 @@ export function testRender(canvas : HTMLCanvasElement ) {
 	testRenderResvg(canvas);
 }
 
-export function testRenderString(canvas : HTMLCanvasElement ) {
-	return testRenderStringResvg(canvas)
+export function testRenderString( ) {
+	return testRenderStringResvg() // TODO: should this take an argument?
 }
 
 export function getImageBufferPointer() {
