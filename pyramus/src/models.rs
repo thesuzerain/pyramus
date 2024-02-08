@@ -16,7 +16,10 @@ impl Stage {
             item: Item::Image(ItemImage::from_rect(width, height, "red", 1.0).unwrap()),
             children: Vec::new(),
             parent: None,
-            transform: RelativeTransform::default(),
+            transform: RelativeTransform {
+                // position: (width as f32 / 2.0, height as f32 / 2.0),
+                ..Default::default()
+            },
         };
 
         Stage {
@@ -182,7 +185,7 @@ impl ItemImage {
         Self::from_svg_string(&format!(
             r#"
             <svg width="{w}" height="{h}" xmlns="http://www.w3.org/2000/svg">
-                <rect x="10" y="10" width="{w}" height="{h}" fill="{bg}" fill-opacity="{alpha}" />
+                <rect x="0" y="0" width="{w}" height="{h}" fill="{bg}" fill-opacity="{alpha}" />
             </svg>
             "#
         ))
@@ -199,8 +202,11 @@ pub fn example_stage() -> Stage {
         None,
     );
 
-    // // Add example text and image
-    StagedItem::add_child(
+    // TODO: Easy way to center items within their parent/the stage
+    // TODO: Render order (z-index)
+
+    // Add example text and image
+    let image = StagedItem::add_child(
         stage.root.clone(),
         Item::Image(ItemImage {
             viewport_height: 200.0,
@@ -214,13 +220,14 @@ pub fn example_stage() -> Stage {
         }),
     );
 
+    // Add example text and image
     StagedItem::add_child(
-        stage.root.clone(),
+        image.clone(),
         Item::Text(ItemText::build("Hello, world!".to_string())),
         Some(RelativeTransform {
-            position: (0.0, 0.0),
-            scale: (1.0, 3.0),
-            rotation: -10.0,
+            position: (100.0, 50.0),
+            scale: (1.0, 5.0),
+            rotation: -90.0, // Perpendicular to the image, not the stage
         }),
     );
     stage

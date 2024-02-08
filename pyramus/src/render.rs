@@ -52,9 +52,9 @@ impl StagedItem {
     pub fn to_usvg_node(&self) -> usvg::Node {
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
         let transform =
-            usvg::Transform::from_translate(self.transform.position.0, self.transform.position.1)
-                .post_scale(self.transform.scale.0, self.transform.scale.1)
-                .post_rotate(self.transform.rotation);
+            usvg::Transform::from_scale(self.transform.scale.0, self.transform.scale.1)
+                .post_rotate(self.transform.rotation)
+                .post_translate(self.transform.position.0, self.transform.position.1);
 
         // All nodes are contained in a group node, so we can apply the transform to the group node, and then apply the transform to the children nodes
         // TODO: Is this needed?
@@ -103,8 +103,8 @@ impl Item {
                     writing_mode: usvg::WritingMode::LeftToRight,
                     chunks: vec![usvg::TextChunk {
                         text: text.text.to_string(),
-                        x: Some(100.), // TODO: Should be centered on the previous node!
-                        y: Some(100.),
+                        x: None,
+                        y: None,
                         anchor: usvg::TextAnchor::Middle,
                         spans: vec![TextSpan {
                             start: 0,
