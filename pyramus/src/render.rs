@@ -51,10 +51,9 @@ impl Stage {
 impl StagedItem {
     pub fn to_usvg_node(&self) -> usvg::Node {
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
-        let transform =
-            usvg::Transform::from_scale(self.transform.scale.0, self.transform.scale.1)
-                .post_rotate(self.transform.rotation)
-                .post_translate(self.transform.position.0, self.transform.position.1);
+        let transform = usvg::Transform::from_scale(self.transform.scale.0, self.transform.scale.1)
+            .post_rotate(self.transform.rotation)
+            .post_translate(self.transform.position.0, self.transform.position.1);
 
         // All nodes are contained in a group node, so we can apply the transform to the group node, and then apply the transform to the children nodes
         // TODO: Is this needed?
