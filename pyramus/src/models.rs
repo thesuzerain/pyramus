@@ -1,28 +1,28 @@
+use resvg::usvg::{self, NonZeroPositiveF32};
 use std::sync::{Arc, RwLock, Weak};
-
-use resvg::usvg::{self};
 
 pub struct Stage {
     pub size: (u32, u32),
     // TODO: It might be better to use a SlotMap/Arena here, rather than just tree structure
+    // TODO: Also/alternatively, we should be using async RwLocks here, to allow for async rendering, probably
     pub root: Arc<RwLock<StagedItem>>,
 }
 
 impl Stage {
     // TODO: Background color should be a color type (consistency with other parts of the codebase)
     // TODO: Background color should be optional, or a pattern (like how Photoshop does transparency)
-    pub fn build(width: u32, height: u32) -> Stage {
+    pub fn build(width: u32, height: u32) -> crate::Result<Stage> {
         let root = StagedItem {
-            item: Item::Image(ItemImage::from_rect(width, height, "red", 1.0).unwrap()),
+            item: Item::Image(ItemImage::from_rect(width, height, "red", 1.0)?),
             children: Vec::new(),
             parent: None,
             transform: RelativeTransform::default(),
         };
 
-        Stage {
+        Ok(Stage {
             size: (width, height),
             root: Arc::new(RwLock::new(root)),
-        }
+        })
     }
 
     // Adds item to root
@@ -30,14 +30,8 @@ impl Stage {
         &mut self,
         item: Item,
         transform: Option<RelativeTransform>,
-    ) -> Arc<RwLock<StagedItem>> {
+    ) -> crate::Result<Arc<RwLock<StagedItem>>> {
         StagedItem::add_child(self.root.clone(), item, transform)
-    }
-}
-
-impl Default for Stage {
-    fn default() -> Self {
-        Self::build(800, 600)
     }
 }
 
@@ -73,7 +67,7 @@ impl StagedItem {
         parent: Arc<RwLock<StagedItem>>,
         item: Item,
         transform: Option<RelativeTransform>,
-    ) -> Arc<RwLock<StagedItem>> {
+    ) -> crate::Result<Arc<RwLock<StagedItem>>> {
         let item = StagedItem {
             item,
             children: Vec::new(),
@@ -82,10 +76,10 @@ impl StagedItem {
         };
         let item = Arc::new(RwLock::new(item));
         {
-            let mut parent = parent.write().unwrap();
+            let mut parent = parent.write()?;
             parent.children.push(item.clone());
         }
-        item
+        Ok(item)
     }
 }
 
@@ -109,7 +103,7 @@ impl From<ItemText> for Item {
 pub struct ItemText {
     pub text: String,
     pub font_family: String,
-    pub font_size: f32,
+    pub font_size: NonZeroPositiveF32,
     pub color: (u8, u8, u8),
     pub italic: bool,
 }
@@ -120,7 +114,7 @@ impl ItemText {
         ItemText {
             text,
             font_family: "Arial".to_string(),
-            font_size: 12.0,
+            font_size: NonZeroPositiveF32::new(12.0).expect("12.0 is not a NonZeroPositiveF32"),
             color: (255, 255, 255), // White
             italic: false,
         }
@@ -190,14 +184,11 @@ impl ItemImage {
 }
 
 // TODO: Remove, this is just for testing of WASM rendering before other features are implemented
-pub fn example_stage() -> Stage {
-    let mut stage = Stage::default();
+pub fn example_stage() -> crate::Result<Stage> {
+    let mut stage = Stage::build(800, 600)?;
 
     // Add a simple translucent rectangle as the background
-    stage.add_child(
-        ItemImage::from_rect(300, 200, "blue", 0.5).unwrap().into(),
-        None,
-    );
+    stage.add_child(ItemImage::from_rect(300, 200, "blue", 0.5)?.into(), None)?;
 
     // TODO: Easy way to center items within their parent/the stage
     // TODO: Render order (z-index)
@@ -215,7 +206,7 @@ pub fn example_stage() -> Stage {
             scale: (0.5, 0.5),
             rotation: 45.0,
         }),
-    );
+    )?;
 
     // Add example text and image
     StagedItem::add_child(
@@ -226,6 +217,7 @@ pub fn example_stage() -> Stage {
             scale: (1.0, 5.0),
             rotation: -90.0, // Perpendicular to the image, not the stage
         }),
-    );
-    stage
+    )?;
+
+    Ok(stage)
 }

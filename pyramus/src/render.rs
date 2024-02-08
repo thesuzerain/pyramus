@@ -1,26 +1,30 @@
 use crate::{
     log,
     models::{Item, ItemImageData, Stage, StagedItem},
+    PyramusError,
 };
 use svgtypes::parse_font_families;
 
 use resvg::{
     tiny_skia,
-    usvg::{self, Font, FontStyle, NonZeroPositiveF32, TextSpan, Transform, XmlOptions},
+    usvg::{self, Font, FontStyle, TextSpan, Transform, XmlOptions},
 };
 use usvg::fontdb;
 
-use wasm_bindgen::{Clamped, JsCast, JsValue};
+use wasm_bindgen::{Clamped, JsCast};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 impl Stage {
-    pub fn to_usvg_tree(&self) -> usvg::Tree {
+    pub fn to_usvg_tree(&self) -> crate::Result<usvg::Tree> {
+        let width = self.size.0 as f32;
+        let height = self.size.1 as f32;
         let mut tree = usvg::Tree {
-            size: usvg::Size::from_wh(self.size.0 as f32, self.size.1 as f32).unwrap(),
+            size: usvg::Size::from_wh(width, height)
+                .ok_or_else(|| PyramusError::InvalidSize(width, height))?,
             view_box: usvg::ViewBox {
                 // TODO: Look here for viewbox- will need to revisit this section as we do resizing
-                rect: usvg::NonZeroRect::from_xywh(0., 0., self.size.0 as f32, self.size.1 as f32)
-                    .unwrap(),
+                rect: usvg::NonZeroRect::from_xywh(0., 0., width, height)
+                    .ok_or_else(|| PyramusError::InvalidSize(width, height))?,
                 aspect: usvg::AspectRatio::default(),
             },
             root: usvg::Group::default(),
@@ -28,9 +32,9 @@ impl Stage {
 
         // Recursively add children to the root node
         // TODO: A slotmap may improve this, as we no longer need to hold a lock on the root node
-        let root = self.root.read().unwrap();
+        let root = self.root.read()?;
         {
-            tree.root.children.push(root.to_usvg_node());
+            tree.root.children.push(root.to_usvg_node()?);
         }
 
         // Postprocessing step
@@ -44,12 +48,12 @@ impl Stage {
         };
         tree.postprocess(steps, &fontdb);
 
-        tree
+        Ok(tree)
     }
 }
 
 impl StagedItem {
-    pub fn to_usvg_node(&self) -> usvg::Node {
+    pub fn to_usvg_node(&self) -> crate::Result<usvg::Node> {
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
         let transform = usvg::Transform::from_scale(self.transform.scale.0, self.transform.scale.1)
             .post_rotate(self.transform.rotation)
@@ -57,21 +61,21 @@ impl StagedItem {
 
         // All nodes are contained in a group node, so we can apply the transform to the group node, and then apply the transform to the children nodes
         // TODO: Is this needed?
-        let mut children = vec![self.item.to_usvg_node()];
+        let mut children = vec![self.item.to_usvg_node()?];
         for child in &self.children {
-            children.push(child.read().unwrap().to_usvg_node());
+            children.push(child.read()?.to_usvg_node()?);
         }
 
-        usvg::Node::Group(Box::new(usvg::Group {
+        Ok(usvg::Node::Group(Box::new(usvg::Group {
             transform,
             children,
             ..Default::default()
-        }))
+        })))
     }
 }
 
 impl Item {
-    pub fn to_usvg_node(&self) -> usvg::Node {
+    pub fn to_usvg_node(&self) -> crate::Result<usvg::Node> {
         match &self {
             Item::Text(text) => {
                 // TODO: There doesn't seem to be a way in resvg to create a text node directly/simply.
@@ -83,10 +87,10 @@ impl Item {
                 fontdb.load_system_fonts();
 
                 // todo: shouldn't hardcode this
-                let font_families = parse_font_families(&text.font_family).unwrap();
+                let font_families = parse_font_families(&text.font_family)?;
 
                 let num_chars = text.text.chars().count();
-                usvg::Node::Text(Box::new(usvg::Text {
+                let node = usvg::Node::Text(Box::new(usvg::Text {
                     id: String::new(),
                     dx: vec![0.0],
                     dy: vec![0.0],
@@ -108,7 +112,7 @@ impl Item {
                         spans: vec![TextSpan {
                             start: 0,
                             end: num_chars,
-                            font_size: NonZeroPositiveF32::new(text.font_size).unwrap(),
+                            font_size: text.font_size,
                             font: Font {
                                 families: font_families,
                                 style: if text.italic {
@@ -147,9 +151,10 @@ impl Item {
                         }],
                         text_flow: usvg::TextFlow::Linear,
                     }],
-                }))
+                }));
+                Ok(node)
             }
-            Item::Image(image) => usvg::Node::Image(Box::new(usvg::Image {
+            Item::Image(image) => Ok(usvg::Node::Image(Box::new(usvg::Image {
                 id: String::new(),
                 abs_transform: Transform::identity(), // Set on postprocessing, not here
                 bounding_box: None,
@@ -161,7 +166,9 @@ impl Item {
                         image.viewport_width,
                         image.viewport_height,
                     )
-                    .unwrap(),
+                    .ok_or_else(|| {
+                        PyramusError::InvalidSize(image.viewport_width, image.viewport_height)
+                    })?,
                     aspect: usvg::AspectRatio::default(),
                 },
                 rendering_mode: usvg::ImageRendering::OptimizeSpeed,
@@ -171,22 +178,21 @@ impl Item {
                     ItemImageData::Gif(data) => usvg::ImageKind::GIF(data.clone()),
                     ItemImageData::Svg(data) => usvg::ImageKind::SVG((**data).clone()),
                 },
-            })),
+            }))),
         }
     }
 }
 
-pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> Result<(), JsValue> {
+pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> crate::Result<()> {
     let context = canvas
-        .get_context("2d")
-        .unwrap()
-        .unwrap()
+        .get_context("2d")?
+        .ok_or_else(|| PyramusError::OtherError("Failed to get 2d context".to_string()))?
         .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap();
+        .map_err(|_| PyramusError::OtherError("Failed to cast to 2d context".to_string()))?;
     let canvas_width = canvas.width();
     let canvas_height = canvas.height();
 
-    let tree = stage.to_usvg_tree();
+    let tree = stage.to_usvg_tree()?;
 
     let tree_size = tree.size.to_int_size();
 
@@ -199,7 +205,8 @@ pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> Result<(), JsValue> 
 
     let transform = Transform::from_scale(min_scale, min_scale);
 
-    let mut pixmap = tiny_skia::Pixmap::new(canvas_width, canvas_height).unwrap();
+    let mut pixmap = tiny_skia::Pixmap::new(canvas_width, canvas_height)
+        .ok_or_else(|| PyramusError::InvalidSize(canvas_width as f32, canvas_height as f32))?;
     log::log("Made pixmap");
 
     resvg::render(&tree, transform, &mut pixmap.as_mut());
@@ -209,17 +216,18 @@ pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> Result<(), JsValue> 
     log::log(format!("Sizes: {} {}", tree_size.width(), tree_size.height()).as_str());
 
     let image_data =
-        web_sys::ImageData::new_with_u8_clamped_array_and_sh(array, canvas_width, canvas_height)?;
+        web_sys::ImageData::new_with_u8_clamped_array_and_sh(array, canvas_width, canvas_height)
+            .map_err(PyramusError::from)?;
 
     log::log(&format!("Image data: {:?}", image_data));
-    context.put_image_data(&image_data, 0.0, 0.0).unwrap();
+    context.put_image_data(&image_data, 0.0, 0.0)?;
     log::log("Put image data");
 
     Ok(())
 }
 
-pub fn render_string(stage: &Stage) -> Result<String, JsValue> {
-    let tree = stage.to_usvg_tree();
+pub fn render_string(stage: &Stage) -> crate::Result<String> {
+    let tree = stage.to_usvg_tree()?;
     let s = tree.to_string(&XmlOptions::default());
     log::log(&format!("Tree: {}", s));
     Ok(s)
