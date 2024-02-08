@@ -13,6 +13,7 @@ serde = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 futures = { workspace = true }
 resvg = { workspace = true }
+svgtypes = { workspace = true }
 
 # TODO: Remove these dependencies
 wasm-bindgen = { workspace = true }
