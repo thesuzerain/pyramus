@@ -16,10 +16,7 @@ impl Stage {
             item: Item::Image(ItemImage::from_rect(width, height, "red", 1.0).unwrap()),
             children: Vec::new(),
             parent: None,
-            transform: RelativeTransform {
-                // position: (width as f32 / 2.0, height as f32 / 2.0),
-                ..Default::default()
-            },
+            transform: RelativeTransform::default(),
         };
 
         Stage {
