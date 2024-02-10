@@ -3,7 +3,7 @@ use std::sync::PoisonError;
 use thiserror::Error;
 use wasm_bindgen::JsValue;
 
-pub mod log;
+pub mod logging;
 pub mod models;
 pub mod render;
 
