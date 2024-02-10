@@ -200,28 +200,28 @@ pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> crate::Result<()> {
     let height_scale = canvas_width as f32 / tree_size.height() as f32;
 
     let min_scale = width_scale.min(height_scale);
-    log::log(&format!("Width scale: {}", width_scale));
-    log::log(&format!("Height scale: {}", height_scale));
+    log!("Width scale: {}", width_scale);
+    log!("Height scale: {}", height_scale);
 
     let transform = Transform::from_scale(min_scale, min_scale);
 
     let mut pixmap = tiny_skia::Pixmap::new(canvas_width, canvas_height)
         .ok_or_else(|| PyramusError::InvalidSize(canvas_width as f32, canvas_height as f32))?;
-    log::log("Made pixmap");
+    log!("Made pixmap");
 
     resvg::render(&tree, transform, &mut pixmap.as_mut());
-    log::log(&format!("Pixmap size: {:?}", tree_size));
+    log!("Pixmap size: {:?}", tree_size);
 
     let array: Clamped<&[u8]> = Clamped(pixmap.data());
-    log::log(format!("Sizes: {} {}", tree_size.width(), tree_size.height()).as_str());
+    log!("Sizes: {} {}", tree_size.width(), tree_size.height());
 
     let image_data =
         web_sys::ImageData::new_with_u8_clamped_array_and_sh(array, canvas_width, canvas_height)
             .map_err(PyramusError::from)?;
 
-    log::log(&format!("Image data: {:?}", image_data));
+    log!("Image data: {:?}", image_data);
     context.put_image_data(&image_data, 0.0, 0.0)?;
-    log::log("Put image data");
+    log!("Put image data");
 
     Ok(())
 }
@@ -229,6 +229,6 @@ pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> crate::Result<()> {
 pub fn render_string(stage: &Stage) -> crate::Result<String> {
     let tree = stage.to_usvg_tree()?;
     let s = tree.to_string(&XmlOptions::default());
-    log::log(&format!("Tree: {}", s));
+    log!("Tree: {}", s);
     Ok(s)
 }
