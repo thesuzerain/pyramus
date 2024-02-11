@@ -1,6 +1,6 @@
 use crate::{
-    log,
-    models::{Item, ItemImageData, Stage, StagedItem},
+    item::{Item, ItemImageData, StagedItem},
+    models::Stage,
     PyramusError,
 };
 use svgtypes::parse_font_families;
@@ -32,9 +32,13 @@ impl Stage {
 
         // Recursively add children to the root node
         // TODO: A slotmap may improve this, as we no longer need to hold a lock on the root node
-        let root = self.root.read()?;
+        let root = self
+            .items
+            .get(&self.root)
+            .ok_or_else(|| PyramusError::OtherError("Root item not found in stage".to_string()))?;
+
         {
-            tree.root.children.push(root.to_usvg_node()?);
+            tree.root.children.push(root.to_usvg_node(self)?);
         }
 
         // Postprocessing step
@@ -53,7 +57,7 @@ impl Stage {
 }
 
 impl StagedItem {
-    pub fn to_usvg_node(&self) -> crate::Result<usvg::Node> {
+    pub fn to_usvg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
         let transform = usvg::Transform::from_scale(self.transform.scale.0, self.transform.scale.1)
             .post_rotate(self.transform.rotation)
@@ -63,7 +67,10 @@ impl StagedItem {
         // TODO: Is this needed?
         let mut children = vec![self.item.to_usvg_node()?];
         for child in &self.children {
-            children.push(child.read()?.to_usvg_node()?);
+            let child = stage.items.get(child).ok_or_else(|| {
+                PyramusError::OtherError("Child item not found in stage".to_string())
+            })?;
+            children.push(child.to_usvg_node(stage)?);
         }
 
         Ok(usvg::Node::Group(Box::new(usvg::Group {
@@ -200,35 +207,25 @@ pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> crate::Result<()> {
     let height_scale = canvas_width as f32 / tree_size.height() as f32;
 
     let min_scale = width_scale.min(height_scale);
-    log!("Width scale: {}", width_scale);
-    log!("Height scale: {}", height_scale);
-
     let transform = Transform::from_scale(min_scale, min_scale);
 
     let mut pixmap = tiny_skia::Pixmap::new(canvas_width, canvas_height)
         .ok_or_else(|| PyramusError::InvalidSize(canvas_width as f32, canvas_height as f32))?;
-    log!("Made pixmap");
 
     resvg::render(&tree, transform, &mut pixmap.as_mut());
-    log!("Pixmap size: {:?}", tree_size);
 
     let array: Clamped<&[u8]> = Clamped(pixmap.data());
-    log!("Sizes: {} {}", tree_size.width(), tree_size.height());
 
     let image_data =
         web_sys::ImageData::new_with_u8_clamped_array_and_sh(array, canvas_width, canvas_height)
             .map_err(PyramusError::from)?;
 
-    log!("Image data: {:?}", image_data);
     context.put_image_data(&image_data, 0.0, 0.0)?;
-    log!("Put image data");
-
     Ok(())
 }
 
 pub fn render_string(stage: &Stage) -> crate::Result<String> {
     let tree = stage.to_usvg_tree()?;
     let s = tree.to_string(&XmlOptions::default());
-    log!("Tree: {}", s);
     Ok(s)
 }

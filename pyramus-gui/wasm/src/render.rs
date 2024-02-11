@@ -1,12 +1,25 @@
-use pyramus::models::example_stage;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(js_name = testRenderResvg)]
-pub fn test_render(canvas: &web_sys::HtmlCanvasElement) -> Result<(), JsError> {
-    Ok(pyramus::render::render(&example_stage()?, canvas)?)
-}
+use crate::editor;
 
 #[wasm_bindgen(js_name = testRenderStringResvg)]
 pub fn test_render_string() -> Result<String, JsError> {
-    Ok(pyramus::render::render_string(&example_stage()?)?)
+    editor::RUNTIME.with(|runtime| {
+        let runtime = runtime.borrow();
+        runtime
+            .as_ref()
+            .map(|runtime| runtime.render_string())
+            .ok_or_else(|| pyramus::PyramusError::NoRuntimeFound)?
+    })
+}
+
+#[wasm_bindgen(js_name = testRenderResvg)]
+pub fn test_render(canvas: &web_sys::HtmlCanvasElement) -> Result<(), JsError> {
+    editor::RUNTIME.with(|runtime| {
+        let runtime = runtime.borrow();
+        runtime
+            .as_ref()
+            .map(|runtime| runtime.render(canvas))
+            .ok_or_else(|| pyramus::PyramusError::NoRuntimeFound)?
+    })
 }

@@ -3,6 +3,9 @@ import {
   generate_checker_board,
   testRenderResvg,
   testRenderStringResvg,
+  getStage,
+  removeObject,
+  type FrontendStage,
 } from '@/../wasm/pkg/pyramus_wasm.js'
 import { getRawBuffer } from '@/../src/helpers/state'
 
@@ -12,6 +15,16 @@ export function testRender(canvas: HTMLCanvasElement) {
 
 export function testRenderString() {
   return testRenderStringResvg() // TODO: should this take an argument?
+}
+
+export function getStageObject(): FrontendStage {
+  return getStage()
+}
+
+// TODO: Can we attach this to the stage object?
+export function deleteItem(item: number) {
+  console.log('deleteItem')
+  removeObject(item)
 }
 
 export function getImageBufferPointer() {

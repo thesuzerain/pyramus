@@ -1,11 +1,16 @@
 use wasm_bindgen::prelude::*;
 
+pub mod editor;
 pub mod image;
+pub mod item;
+pub mod models;
 pub mod render;
 
 #[wasm_bindgen(start)]
 pub fn init_app() {
-    println!("Hello from Rust logging!");
+    editor::RUNTIME.with(|runtime| {
+        *runtime.borrow_mut() = Some(editor::EditorRuntime::new());
+    });
 }
 
 #[wasm_bindgen(js_name = testString)]
