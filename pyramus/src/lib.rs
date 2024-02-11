@@ -3,6 +3,8 @@ use std::sync::PoisonError;
 use thiserror::Error;
 use wasm_bindgen::JsValue;
 
+pub mod command;
+pub mod item;
 pub mod logging;
 pub mod models;
 pub mod render;
@@ -11,6 +13,9 @@ pub type Result<T> = std::result::Result<T, PyramusError>;
 
 #[derive(Error, Debug)]
 pub enum PyramusError {
+    #[error("No runtime found!")]
+    NoRuntimeFound,
+
     #[error("USVG error: {0}")]
     USVGError(#[from] resvg::usvg::Error),
 

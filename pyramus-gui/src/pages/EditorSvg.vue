@@ -7,16 +7,37 @@ const breadcrumbs = useBreadcrumbs()
 
 breadcrumbs.setContext({ name: 'EditorSvg', link: route.path })
 
-import { testRenderString } from '@/helpers/editor'
+import { testRenderString, getStageObject, deleteItem } from '@/helpers/editor'
 
 const canvasString = ref('')
 
 canvasString.value = testRenderString()
+
+const stageObject = ref(getStageObject())
+
+const removeItem = (id: number) => {
+  const stageItem = stageObject.value.items[id]
+  deleteItem(stageItem.id)
+}
+
+// every 5 seconds update the canvas
+// todo: updates should be triggered by the server after command resolution
+setInterval(() => {
+  canvasString.value = testRenderString()
+  stageObject.value = getStageObject()
+}, 1000)
 </script>
 
 <template>
   <div class="page-container">
     <div v-html="canvasString"></div>
+  </div>
+  <div>
+    Object: {{ stageObject }}
+    Editor buttons:
+    <div v-for="item in stageObject.items" :key="item.id">
+      <button @click="removeItem(item.id)">delete {{ item.name }}</button>
+    </div>
   </div>
 </template>
 

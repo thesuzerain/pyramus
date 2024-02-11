@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {
-        crate::logging::log(&format!($($arg)*));
+        $crate::logging::log(&format!($($arg)*));
     }
 }
 

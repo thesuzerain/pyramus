@@ -15,8 +15,9 @@ futures = { workspace = true }
 resvg = { workspace = true }
 svgtypes = { workspace = true }
 thiserror = { workspace = true }
+js-sys = { workspace = true }
 
-# TODO: Remove these dependencies
+# TODO: Remove these dependencies (and any other unnecessary ones) 
 wasm-bindgen = { workspace = true }
 serde-wasm-bindgen = "0.6"
 wasm-bindgen-futures = { workspace = true }

@@ -1,185 +1,102 @@
-use resvg::usvg::{self, NonZeroPositiveF32};
-use std::sync::{Arc, RwLock, Weak};
+use crate::item::{
+    Item, ItemImage, ItemImageData, ItemText, RelativeTransform, StagedItem, StagedItemId,
+};
+use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct Stage {
     pub size: (u32, u32),
     // TODO: It might be better to use a SlotMap/Arena here, rather than just tree structure
     // TODO: Also/alternatively, we should be using async RwLocks here, to allow for async rendering, probably
-    pub root: Arc<RwLock<StagedItem>>,
+    pub root: StagedItemId,
+    pub items: HashMap<StagedItemId, StagedItem>,
 }
 
 impl Stage {
     // TODO: Background color should be a color type (consistency with other parts of the codebase)
     // TODO: Background color should be optional, or a pattern (like how Photoshop does transparency)
     pub fn build(width: u32, height: u32) -> crate::Result<Stage> {
+        let root_id = StagedItemId::new();
         let root = StagedItem {
+            id: root_id,
+            name: "root".to_string(),
             item: Item::Image(ItemImage::from_rect(width, height, "red", 1.0)?),
             children: Vec::new(),
             parent: None,
             transform: RelativeTransform::default(),
         };
+        let mut items = HashMap::new();
+        items.insert(root_id, root);
 
         Ok(Stage {
             size: (width, height),
-            root: Arc::new(RwLock::new(root)),
+            root: root_id,
+            items,
         })
     }
 
-    // Adds item to root
-    pub fn add_child(
-        &mut self,
-        item: Item,
-        transform: Option<RelativeTransform>,
-    ) -> crate::Result<Arc<RwLock<StagedItem>>> {
-        StagedItem::add_child(self.root.clone(), item, transform)
-    }
-}
-
-pub struct StagedItem {
-    pub item: Item,
-
-    // TODO: SlotMap/Arena
-    pub parent: Option<Weak<RwLock<StagedItem>>>,
-    pub children: Vec<Arc<RwLock<StagedItem>>>, // If None, then it's a root item
-
-    pub transform: RelativeTransform,
-}
-
-pub struct RelativeTransform {
-    pub position: (f32, f32),
-    pub scale: (f32, f32),
-    pub rotation: f32, // In degrees
-}
-
-impl Default for RelativeTransform {
-    fn default() -> Self {
-        RelativeTransform {
-            position: (0.0, 0.0),
-            scale: (1.0, 1.0),
-            rotation: 0.0,
-        }
-    }
-}
-
-impl StagedItem {
     // TODO: This pattern could be improved (taking in an Arc<RwLock> parent, rather than a reference to self)
     pub fn add_child(
-        parent: Arc<RwLock<StagedItem>>,
+        &mut self,
+        name: String,
+        parent: Option<StagedItemId>,
         item: Item,
         transform: Option<RelativeTransform>,
-    ) -> crate::Result<Arc<RwLock<StagedItem>>> {
+    ) -> crate::Result<StagedItemId> {
+        let id = StagedItemId::new();
+        let parent = parent.unwrap_or(self.root);
+
         let item = StagedItem {
+            id,
+            name,
             item,
             children: Vec::new(),
-            parent: Some(Arc::downgrade(&parent)),
+            parent: Some(parent),
             transform: transform.unwrap_or_default(),
         };
-        let item = Arc::new(RwLock::new(item));
-        {
-            let mut parent = parent.write()?;
-            parent.children.push(item.clone());
+
+        self.items.insert(id, item);
+
+        let parent = self
+            .items
+            .get_mut(&parent)
+            .ok_or_else(|| crate::PyramusError::OtherError("Parent not found".to_string()))?;
+        parent.children.push(id);
+        Ok(id)
+    }
+
+    pub fn remove_item(&mut self, id: StagedItemId) -> crate::Result<()> {
+        // Cannot remove the root item
+        if id == self.root {
+            return Err(crate::PyramusError::OtherError(
+                "Cannot remove the root item".to_string(),
+            ));
         }
-        Ok(item)
-    }
-}
 
-pub enum Item {
-    Text(ItemText),
-    Image(ItemImage),
-}
+        let root = self.root;
+        let parent = self.items.get(&id).and_then(|item| item.parent);
+        let children = self
+            .items
+            .get(&id)
+            .map(|item| item.children.clone())
+            .unwrap_or_default();
 
-impl From<ItemImage> for Item {
-    fn from(image: ItemImage) -> Self {
-        Item::Image(image)
-    }
-}
-
-impl From<ItemText> for Item {
-    fn from(text: ItemText) -> Self {
-        Item::Text(text)
-    }
-}
-
-pub struct ItemText {
-    pub text: String,
-    pub font_family: String,
-    pub font_size: NonZeroPositiveF32,
-    pub color: (u8, u8, u8),
-    pub italic: bool,
-}
-
-impl ItemText {
-    // TODO: 'Builder' pattern
-    pub fn build(text: String) -> ItemText {
-        ItemText {
-            text,
-            font_family: "Arial".to_string(),
-            font_size: NonZeroPositiveF32::new(12.0).expect("12.0 is not a NonZeroPositiveF32"),
-            color: (255, 255, 255), // White
-            italic: false,
+        if let Some(parent) = parent.and_then(|parent| self.items.get_mut(&parent)) {
+            parent.children.retain(|child| *child != id);
         }
-    }
-}
 
-pub struct ItemImage {
-    pub data: ItemImageData,
-    pub viewport_width: f32,
-    pub viewport_height: f32,
-}
+        // Children should be kept and re-parented to the root
+        // TODO: make this optional
+        // If we reparent to the root, we should also calculate the new relative transform to keep the same position
+        for child in children {
+            let Some(child) = self.items.get_mut(&child) else {
+                continue;
+            };
+            child.parent = Some(root);
+        }
+        self.items.remove(&id);
 
-pub enum ItemImageData {
-    Png(Arc<Vec<u8>>),
-    Jpeg(Arc<Vec<u8>>),
-    Gif(Arc<Vec<u8>>),
-    Svg(Arc<usvg::Tree>),
-}
-
-impl ItemImage {
-    pub fn from_bytes(
-        bytes: Vec<u8>,
-        viewport_width: f32,
-        viewport_height: f32,
-        ext: &str,
-    ) -> Option<ItemImage> {
-        let data = match ext {
-            "png" => Some(ItemImageData::Png(Arc::new(bytes))),
-            "jpg" | "jpeg" => Some(ItemImageData::Jpeg(Arc::new(bytes))),
-            "gif" => Some(ItemImageData::Gif(Arc::new(bytes))),
-            "svg" => {
-                let tree = usvg::Tree::from_data(&bytes, &usvg::Options::default()).ok()?;
-                Some(ItemImageData::Svg(Arc::new(tree)))
-            }
-            _ => None,
-        };
-        data.map(|data| ItemImage {
-            data,
-            viewport_width,
-            viewport_height,
-        })
-    }
-
-    pub fn from_svg_string(svg: &str) -> Result<ItemImage, usvg::Error> {
-        let tree = resvg::usvg::Tree::from_str(svg, &resvg::usvg::Options::default())?;
-        let tree_height = tree.size.height();
-        let tree_width = tree.size.width();
-        Ok(ItemImage {
-            data: ItemImageData::Svg(Arc::new(tree)),
-            viewport_width: tree_width,
-            viewport_height: tree_height,
-        })
-    }
-
-    // Creates a simple SVG tree with a rectangle
-    // TODO: This is for testing purposes only
-    // Alpha is a value between 0.0 and 1.0
-    pub fn from_rect(w: u32, h: u32, bg: &str, alpha: f32) -> Result<ItemImage, usvg::Error> {
-        Self::from_svg_string(&format!(
-            r#"
-            <svg width="{w}" height="{h}" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0" y="0" width="{w}" height="{h}" fill="{bg}" fill-opacity="{alpha}" />
-            </svg>
-            "#
-        ))
+        Ok(())
     }
 }
 
@@ -188,14 +105,20 @@ pub fn example_stage() -> crate::Result<Stage> {
     let mut stage = Stage::build(800, 600)?;
 
     // Add a simple translucent rectangle as the background
-    stage.add_child(ItemImage::from_rect(300, 200, "blue", 0.5)?.into(), None)?;
+    stage.add_child(
+        "Rectangle".to_string(),
+        None,
+        ItemImage::from_rect(300, 200, "blue", 0.5)?.into(),
+        None,
+    )?;
 
     // TODO: Easy way to center items within their parent/the stage
     // TODO: Render order (z-index)
 
     // Add example text and image
-    let image = StagedItem::add_child(
-        stage.root.clone(),
+    let image = stage.add_child(
+        "Image".to_string(),
+        None,
         Item::Image(ItemImage {
             viewport_height: 200.0,
             viewport_width: 300.0,
@@ -209,8 +132,9 @@ pub fn example_stage() -> crate::Result<Stage> {
     )?;
 
     // Add example text and image
-    StagedItem::add_child(
-        image.clone(),
+    stage.add_child(
+        "Text".to_string(),
+        Some(image),
         Item::Text(ItemText::build("Hello, world!".to_string())),
         Some(RelativeTransform {
             position: (100.0, 50.0),
