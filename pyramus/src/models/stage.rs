@@ -1,4 +1,4 @@
-use crate::item::{
+use super::item::{
     Item, ItemImage, ItemImageData, ItemText, RelativeTransform, StagedItem, StagedItemId,
 };
 use std::collections::HashMap;
@@ -122,7 +122,7 @@ pub fn example_stage() -> crate::Result<Stage> {
         Item::Image(ItemImage {
             viewport_height: 200.0,
             viewport_width: 300.0,
-            data: ItemImageData::Jpeg(include_bytes!("../../testimg.jpg").to_vec().into()),
+            data: ItemImageData::Jpeg(include_bytes!("../../../testimg.jpg").to_vec().into()),
         }),
         Some(RelativeTransform {
             position: (50.0, 50.0),

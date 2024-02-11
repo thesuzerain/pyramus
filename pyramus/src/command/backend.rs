@@ -1,5 +1,5 @@
-use crate::{item::StagedItemId, models::Stage};
-use strum_macros::Display;
+use crate::models::{item::StagedItemId, stage::Stage};
+use super::FrontendCommand;
 
 pub enum BackendCommand {
     DeleteItem(StagedItemId),
@@ -22,25 +22,6 @@ impl BackendCommand {
                 .collect())
         } else {
             Ok(frontend_commands)
-        }
-    }
-}
-
-#[derive(Display)]
-pub enum FrontendCommand {
-    // Not called directly, but used when we trigger a re-render of the stage
-    Rerender,
-
-    // TODO: unused
-    UpdateStage,
-}
-
-impl FrontendCommand {
-    pub fn should_rerender(&self) -> bool {
-        match self {
-            FrontendCommand::Rerender => false,
-
-            FrontendCommand::UpdateStage => true,
         }
     }
 }
