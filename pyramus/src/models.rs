@@ -35,7 +35,7 @@ impl Stage {
         })
     }
 
-    // TODO: This pattern could be improved (taking in an Arc<RwLock> parent, rather than a reference to self)
+    // TODO: This pattern could be improved (taking in an Rc<RwLock> parent, rather than a reference to self)
     pub fn add_child(
         &mut self,
         name: String,

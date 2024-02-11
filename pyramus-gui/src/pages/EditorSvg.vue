@@ -8,6 +8,7 @@ const breadcrumbs = useBreadcrumbs()
 breadcrumbs.setContext({ name: 'EditorSvg', link: route.path })
 
 import { testRenderString, getStageObject, deleteItem } from '@/helpers/editor'
+import { type UpdateStage, type Rerender, subscribe } from '@/helpers/messages'
 
 const canvasString = ref('')
 
@@ -20,12 +21,15 @@ const removeItem = (id: number) => {
   deleteItem(stageItem.id)
 }
 
-// every 5 seconds update the canvas
-// todo: updates should be triggered by the server after command resolution
-setInterval(() => {
-  canvasString.value = testRenderString()
+subscribe('UpdateStage', async (data: UpdateStage) => {
+  console.log('UpdateStage', data)
   stageObject.value = getStageObject()
-}, 1000)
+})
+
+subscribe('Rerender', async (data: Rerender) => {
+  console.log('RenderImage', data)
+  canvasString.value = testRenderString()
+})
 </script>
 
 <template>

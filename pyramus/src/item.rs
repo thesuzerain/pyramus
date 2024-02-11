@@ -5,6 +5,12 @@ use std::sync::Arc;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StagedItemId(pub u32);
 
+impl Default for StagedItemId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StagedItemId {
     pub fn new() -> StagedItemId {
         // TODO: Generate a unique ID
@@ -21,7 +27,7 @@ pub struct StagedItem {
     pub item: Item,
 
     // TODO: SlotMap/Arena
-    // TODO: Should these be Weak<> or Arc<>- a direct reference to the parent?
+    // TODO: Should these be Weak<> or Rc<>- a direct reference to the parent?
     pub parent: Option<StagedItemId>,
     pub children: Vec<StagedItemId>, // If None, then it's a root item
 
