@@ -4,7 +4,6 @@ use thiserror::Error;
 use wasm_bindgen::JsValue;
 
 pub mod command;
-pub mod item;
 pub mod logging;
 pub mod models;
 pub mod render;

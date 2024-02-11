@@ -16,6 +16,8 @@ resvg = { workspace = true }
 svgtypes = { workspace = true }
 thiserror = { workspace = true }
 js-sys = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 # TODO: Remove these dependencies (and any other unnecessary ones) 
 wasm-bindgen = { workspace = true }

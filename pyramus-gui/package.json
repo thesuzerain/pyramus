@@ -21,7 +21,7 @@
     "print-linting-help": "echo 'Pyramus project had lint errors, or may have otherwise failed. In the latter case, did you remember to `npm install` the dependencies in `/frontend`?'"
   },
   "dependencies": {
-    "class-transformer": "^0.5.1",
+		"class-transformer": "^0.5.1",
     "dayjs": "^1.11.7",
     "floating-vue": "^2.0.0-beta.20",
     "idb-keyval": "^6.2.0",

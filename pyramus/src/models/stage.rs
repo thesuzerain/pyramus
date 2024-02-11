@@ -1,4 +1,4 @@
-use crate::item::{
+use super::item::{
     Item, ItemImage, ItemImageData, ItemText, RelativeTransform, StagedItem, StagedItemId,
 };
 use std::collections::HashMap;
@@ -35,7 +35,7 @@ impl Stage {
         })
     }
 
-    // TODO: This pattern could be improved (taking in an Arc<RwLock> parent, rather than a reference to self)
+    // TODO: This pattern could be improved (taking in an Rc<RwLock> parent, rather than a reference to self)
     pub fn add_child(
         &mut self,
         name: String,
@@ -122,7 +122,7 @@ pub fn example_stage() -> crate::Result<Stage> {
         Item::Image(ItemImage {
             viewport_height: 200.0,
             viewport_width: 300.0,
-            data: ItemImageData::Jpeg(include_bytes!("../../testimg.jpg").to_vec().into()),
+            data: ItemImageData::Jpeg(include_bytes!("../../../testimg.jpg").to_vec().into()),
         }),
         Some(RelativeTransform {
             position: (50.0, 50.0),

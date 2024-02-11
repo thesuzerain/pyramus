@@ -13,6 +13,14 @@ pub fn init_app() {
     });
 }
 
+#[wasm_bindgen(js_name = subscribeFrontendCommand)]
+pub fn subscribe(event: String, callback: js_sys::Function) {
+    editor::CALLBACKS.with(|callbacks| {
+        let mut callbacks = callbacks.borrow_mut();
+        callbacks.insert(event, callback);
+    });
+}
+
 #[wasm_bindgen(js_name = testString)]
 pub fn test_string() -> String {
     "Hello from Rust!".to_string()
