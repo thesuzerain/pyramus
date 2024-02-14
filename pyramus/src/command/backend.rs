@@ -1,5 +1,5 @@
-use crate::models::{item::StagedItemId, stage::Stage};
 use super::FrontendCommand;
+use crate::models::{item::StagedItemId, stage::Stage};
 
 pub enum BackendCommand {
     DeleteItem(StagedItemId),

@@ -59,7 +59,7 @@ pub fn dispatch_frontend_command(
 }
 
 pub struct EditorRuntime {
-    pub stage: pyramus::models::Stage,
+    pub stage: pyramus::models::stage::Stage,
 }
 
 impl Default for EditorRuntime {
@@ -73,7 +73,7 @@ impl EditorRuntime {
         EditorRuntime {
             // TODO: Load from file, etc
             // TODO: When no longer a prototype, this should not need to be unwrapped
-            stage: pyramus::models::example_stage().unwrap(),
+            stage: pyramus::models::stage::example_stage().unwrap(),
         }
     }
 

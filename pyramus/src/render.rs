@@ -1,6 +1,8 @@
 use crate::{
-    models::{item::{Item, ItemImageData, StagedItem},
-    stage::Stage},
+    models::{
+        item::{Item, ItemImageData, StagedItem},
+        stage::Stage,
+    },
     PyramusError,
 };
 use svgtypes::parse_font_families;

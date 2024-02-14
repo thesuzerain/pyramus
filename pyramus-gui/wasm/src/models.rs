@@ -44,7 +44,7 @@ pub enum FrontendItemType {
 
 // Don't use 'From' trait because we want to convert with a reference
 impl FrontendStage {
-    pub fn from(stage: &pyramus::models::Stage) -> FrontendStage {
+    pub fn from(stage: &pyramus::models::stage::Stage) -> FrontendStage {
         FrontendStage {
             items: stage
                 .items
@@ -57,7 +57,7 @@ impl FrontendStage {
 
 // Don't use 'From' trait because we want to convert with a reference
 impl FrontendItem {
-    pub fn from(item: &pyramus::item::StagedItem) -> FrontendItem {
+    pub fn from(item: &pyramus::models::item::StagedItem) -> FrontendItem {
         FrontendItem {
             id: item.id.0,
             name: item.name.clone(),
@@ -73,16 +73,16 @@ impl FrontendItem {
 
 // Don't use 'From' trait because we want to convert with a reference
 impl FrontendItemType {
-    pub fn from(item_type: &pyramus::item::Item) -> FrontendItemType {
+    pub fn from(item_type: &pyramus::models::item::Item) -> FrontendItemType {
         match item_type {
-            pyramus::item::Item::Text(text) => FrontendItemType::Text {
+            pyramus::models::item::Item::Text(text) => FrontendItemType::Text {
                 text: text.text.clone(),
                 font_family: text.font_family.clone(),
                 font_size: text.font_size.get(),
                 color: text.color,
                 italic: text.italic,
             },
-            pyramus::item::Item::Image { .. } => FrontendItemType::Image,
+            pyramus::models::item::Item::Image { .. } => FrontendItemType::Image,
         }
     }
 }

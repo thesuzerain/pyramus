@@ -2,7 +2,7 @@ use crate::{
     editor::{self, command},
     models::FrontendStage,
 };
-use pyramus::{command::BackendCommand, item::StagedItemId};
+use pyramus::{command::BackendCommand, models::item::StagedItemId};
 use wasm_bindgen::prelude::*;
 
 // TODO: Coalesce these into a struct
