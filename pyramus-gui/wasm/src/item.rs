@@ -17,6 +17,12 @@ pub fn remove_object(item_id: u32) -> Result<(), JsError> {
     Ok(())
 }
 
+#[wasm_bindgen(js_name = renameObject)]
+pub fn rename_object(item_id: u32, name: String) -> Result<(), JsError> {
+    command([BackendCommand::RenameItem(StagedItemId(item_id), name)])?;
+    Ok(())
+}
+
 #[wasm_bindgen(js_name = editTransform)]
 pub fn edit_transform(
     item_id: u32,

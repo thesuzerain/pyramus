@@ -65,6 +65,20 @@ impl Stage {
         Ok(id)
     }
 
+    pub fn edit_item(
+        &mut self,
+        id: StagedItemId,
+        f: impl FnOnce(&mut StagedItem) -> crate::Result<()>,
+    ) -> crate::Result<()> {
+        if let Some(item) = self.items.get_mut(&id) {
+            f(item)
+        } else {
+            Err(crate::PyramusError::OtherError(
+                "Item not found".to_string(),
+            ))
+        }
+    }
+
     pub fn edit_item_transform(
         &mut self,
         id: StagedItemId,

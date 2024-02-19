@@ -2,13 +2,12 @@
   <div class="editor-container">
     <div class="tool-row">
       Name:
-
       <input
         v-model="nameValue"
         type="text"
         placeholder="placeholder"
         class="text-entry-input"
-        @input="updateTransform"
+        @input="updateName"
       />
     </div>
     <div class="tool-row">
@@ -58,7 +57,7 @@
 <script setup lang="ts">
 import { type FrontendItem } from '/wasm/pkg/pyramus_wasm'
 import { ref, type PropType } from 'vue'
-import { deleteItem, editItemTransform } from '@/helpers/editor'
+import { deleteItem, editItemName, editItemTransform } from '@/helpers/editor'
 
 import Button from '@/components/ui/Button.vue'
 
@@ -75,8 +74,11 @@ const positionValue = ref(props.item.position)
 const scaleValue = ref(props.item.scale)
 
 const updateTransform = () => {
-  console.log('updateTransform')
   editItemTransform(props.item.id, positionValue.value, rotationValue.value, scaleValue.value)
+}
+
+const updateName = () => {
+  editItemName(props.item.id, nameValue.value)
 }
 
 const removeItem = () => {

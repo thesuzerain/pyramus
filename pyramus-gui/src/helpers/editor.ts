@@ -5,6 +5,7 @@ import {
   getStage,
   removeObject,
   editTransform,
+  renameObject,
   type FrontendStage,
 } from '@/../wasm/pkg/pyramus_wasm.js'
 
@@ -33,6 +34,11 @@ export function editItemTransform(
   scale: [number, number]
 ) {
   editTransform(item, position[0], position[1], rotation, scale[0], scale[1])
+}
+
+// TODO: Can we attach this to the stage object?
+export function editItemName(item: number, name: string) {
+  renameObject(item, name)
 }
 
 export function getImageBufferPointer() {

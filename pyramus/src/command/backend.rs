@@ -5,6 +5,7 @@ use crate::models::{
 };
 
 pub enum BackendCommand {
+    RenameItem(StagedItemId, String),
     EditTransform(StagedItemId, RelativeTransform),
     DeleteItem(StagedItemId),
 }
@@ -18,6 +19,14 @@ impl BackendCommand {
             }
             BackendCommand::EditTransform(item_id, transform) => {
                 stage.edit_item_transform(item_id, transform)?;
+                vec![FrontendCommand::UpdateStage]
+            }
+            BackendCommand::RenameItem(item_id, name) => {
+                stage.edit_item(item_id, |item| {
+                    crate::log!("Renaming item: {:?}", item);
+                    item.name = name;
+                    Ok(())
+                })?;
                 vec![FrontendCommand::UpdateStage]
             }
         };
