@@ -1,25 +1,24 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
+import { testRenderString, getStageObject } from '@/helpers/editor'
+import { type UpdateStage, type Rerender, subscribe } from '@/helpers/messages'
+import ItemEditor from '@/components/ui/ItemEditor.vue'
+
 const route = useRoute()
 const breadcrumbs = useBreadcrumbs()
 
 breadcrumbs.setContext({ name: 'EditorSvg', link: route.path })
 
-import { testRenderString, getStageObject, deleteItem } from '@/helpers/editor'
-import { type UpdateStage, type Rerender, subscribe } from '@/helpers/messages'
-
 const canvasString = ref('')
+const stageObject = ref(getStageObject())
 
 canvasString.value = testRenderString()
 
-const stageObject = ref(getStageObject())
-
-const removeItem = (id: number) => {
-  const stageItem = stageObject.value.items[id]
-  deleteItem(stageItem.id)
-}
+const editableItems = computed(() => {
+  return Object.values(stageObject.value.items).filter((item) => !item.is_root)
+})
 
 subscribe('UpdateStage', async (data: UpdateStage) => {
   console.log('UpdateStage', data)
@@ -33,19 +32,26 @@ subscribe('Rerender', async (data: Rerender) => {
 </script>
 
 <template>
-  <div class="page-container">
-    <div v-html="canvasString"></div>
-  </div>
-  <div>
-    Object: {{ stageObject }}
-    Editor buttons:
-    <div v-for="item in stageObject.items" :key="item.id">
-      <button @click="removeItem(item.id)">delete {{ item.name }}</button>
+  <div class="container">
+    <div class="page-container">
+      <div v-html="canvasString"></div>
+    </div>
+    <div class="tool-container">
+      <div class="tool-section">
+        <div class="tools-list">
+          <ItemEditor v-for="item in editableItems" :key="item.id" :item="item" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.container {
+  display: flex;
+  flex-direction: row;
+}
+
 .page-container {
   display: flex;
   flex-direction: column;
@@ -59,11 +65,47 @@ subscribe('Rerender', async (data: Rerender) => {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
-.canvas2 {
-  // Todo: changeable size
-  width: 20rem;
-  height: 20rem;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+
+.tool-container {
+  display: flex;
+  flex-direction: column;
+  align-items: right;
+  justify-content: space-between;
+  height: 100%;
+  background-color: var(--color-raised-bg);
+  box-shadow: var(--shadow-inset-sm), var(--shadow-floating);
+  padding: var(--gap-md);
+}
+
+.tools-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  gap: 0.5rem;
+
+  a {
+    display: flex;
+    align-items: center;
+    word-spacing: 3px;
+    background: inherit;
+    transition: all ease-in-out 0.1s;
+    color: var(--color-base);
+    box-shadow: none;
+
+    &.router-link-active {
+      color: var(--color-contrast);
+      background: var(--color-button-bg);
+      box-shadow: var(--shadow-floating);
+    }
+
+    &:hover {
+      background-color: var(--color-button-bg);
+      color: var(--color-contrast);
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      text-decoration: none;
+    }
+  }
 }
 </style>

@@ -65,6 +65,42 @@ impl Stage {
         Ok(id)
     }
 
+    pub fn edit_item(
+        &mut self,
+        id: StagedItemId,
+        f: impl FnOnce(&mut StagedItem) -> crate::Result<()>,
+    ) -> crate::Result<()> {
+        if let Some(item) = self.items.get_mut(&id) {
+            f(item)
+        } else {
+            Err(crate::PyramusError::OtherError(
+                "Item not found".to_string(),
+            ))
+        }
+    }
+
+    pub fn edit_item_transform(
+        &mut self,
+        id: StagedItemId,
+        transform: RelativeTransform,
+    ) -> crate::Result<()> {
+        // Cannot edit the root item
+        if id == self.root {
+            return Err(crate::PyramusError::OtherError(
+                "Cannot edit the root item".to_string(),
+            ));
+        }
+
+        if let Some(item) = self.items.get_mut(&id) {
+            item.transform = transform;
+            Ok(())
+        } else {
+            Err(crate::PyramusError::OtherError(
+                "Item not found".to_string(),
+            ))
+        }
+    }
+
     pub fn remove_item(&mut self, id: StagedItemId) -> crate::Result<()> {
         // Cannot remove the root item
         if id == self.root {

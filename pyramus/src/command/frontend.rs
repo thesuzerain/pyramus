@@ -5,7 +5,6 @@ pub enum FrontendCommand {
     // Not called directly, but used when we trigger a re-render of the stage
     Rerender,
 
-    // TODO: unused
     UpdateStage,
 }
 
