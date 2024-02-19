@@ -1,15 +1,23 @@
 use super::FrontendCommand;
-use crate::models::{item::StagedItemId, stage::Stage};
+use crate::models::{
+    item::{RelativeTransform, StagedItemId},
+    stage::Stage,
+};
 
 pub enum BackendCommand {
+    EditTransform(StagedItemId, RelativeTransform),
     DeleteItem(StagedItemId),
 }
 
 impl BackendCommand {
-    pub fn process(&self, stage: &mut Stage) -> crate::Result<Vec<FrontendCommand>> {
+    pub fn process(self, stage: &mut Stage) -> crate::Result<Vec<FrontendCommand>> {
         let frontend_commands = match self {
             BackendCommand::DeleteItem(item_id) => {
-                stage.remove_item(*item_id)?;
+                stage.remove_item(item_id)?;
+                vec![FrontendCommand::UpdateStage]
+            }
+            BackendCommand::EditTransform(item_id, transform) => {
+                stage.edit_item_transform(item_id, transform)?;
                 vec![FrontendCommand::UpdateStage]
             }
         };

@@ -21,8 +21,7 @@ export function getWasm(): WasmRawInstance {
   return wasmImport
 }
 
+// TODO: may not be necessary anymore now that we are no longer editing the buffer directly
 export function getRawBuffer(): ArrayBuffer {
   return getWasm().buffer
 }
-
-// TODO: Editor function here

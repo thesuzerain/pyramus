@@ -20,6 +20,8 @@ pub struct FrontendItem {
 
     pub name: String,
 
+    pub is_root: bool,
+
     pub parent: Option<u32>,
     pub children: Vec<u32>,
 
@@ -49,18 +51,22 @@ impl FrontendStage {
             items: stage
                 .items
                 .iter()
-                .map(|(id, item)| (id.0, FrontendItem::from(item)))
+                .map(|(id, item)| (id.0, FrontendItem::from(item, stage)))
                 .collect::<HashMap<_, _>>(),
         }
     }
 }
 
-// Don't use 'From' trait because we want to convert with a reference
+// Don't use 'From' trait because we want to convert with a reference, and with the stage context
 impl FrontendItem {
-    pub fn from(item: &pyramus::models::item::StagedItem) -> FrontendItem {
+    pub fn from(
+        item: &pyramus::models::item::StagedItem,
+        stage: &pyramus::models::stage::Stage,
+    ) -> FrontendItem {
         FrontendItem {
             id: item.id.0,
             name: item.name.clone(),
+            is_root: item.id == stage.root,
             parent: item.parent.map(|id| id.0),
             children: item.children.iter().map(|id| id.0).collect(),
             item_type: FrontendItemType::from(&item.item),
