@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
 import { testRenderString, getStageObject } from '@/helpers/editor'
 import { type UpdateStage, type Rerender, subscribe } from '@/helpers/messages'
 import ItemEditor from '@/components/ui/ItemEditor.vue'
+import TreeSelector from '@/components/ui/TreeSelector.vue'
+import { type FrontendItem } from '/wasm/pkg/pyramus_wasm'
 
 const route = useRoute()
 const breadcrumbs = useBreadcrumbs()
@@ -16,9 +18,11 @@ const stageObject = ref(getStageObject())
 
 canvasString.value = testRenderString()
 
-const editableItems = computed(() => {
-  return Object.values(stageObject.value.items).filter((item) => !item.is_root)
-})
+const selectedItem = ref<FrontendItem | undefined>(undefined)
+function updateSelectedItem(itemId: number) {
+  selectedItem.value = stageObject.value.items[itemId]
+  console.log('selectedItem', selectedItem.value)
+}
 
 subscribe('UpdateStage', async (data: UpdateStage) => {
   console.log('UpdateStage', data)
@@ -38,8 +42,15 @@ subscribe('Rerender', async (data: Rerender) => {
     </div>
     <div class="tool-container">
       <div class="tool-section">
-        <div class="tools-list">
-          <ItemEditor v-for="item in editableItems" :key="item.id" :item="item" />
+        <div v-if="selectedItem" class="tools-list">
+          <ItemEditor :key="selectedItem.id" :item="selectedItem" />
+        </div>
+        <div class="tree-view">
+          <TreeSelector
+            :items="stageObject.items"
+            :selected-item-id="selectedItem?.id"
+            @update-value="updateSelectedItem"
+          />
         </div>
       </div>
     </div>
@@ -107,5 +118,9 @@ subscribe('Rerender', async (data: Rerender) => {
       text-decoration: none;
     }
   }
+}
+
+.tree-view {
+  padding: 0.5rem;
 }
 </style>
