@@ -14,14 +14,6 @@ const routes = [
     },
   },
   {
-    path: '/editor/raw',
-    name: 'Editor Raw',
-    component: Pages.EditorRaw,
-    meta: {
-      breadcrumb: [{ name: 'Editor Raw' }],
-    },
-  },
-  {
     path: '/editor/svg',
     name: 'Editor SVG',
     component: Pages.EditorSvg,

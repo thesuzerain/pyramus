@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::*;
 
 pub mod editor;
 pub mod image;
+pub mod input;
 pub mod item;
 pub mod models;
 pub mod render;

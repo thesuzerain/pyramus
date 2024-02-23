@@ -1,6 +1,4 @@
-use super::item::{
-    Item, ItemImage, ItemImageData, ItemText, RelativeTransform, StagedItem, StagedItemId,
-};
+use super::item::{Item, ItemImage, ItemText, RelativeTransform, StagedItem, StagedItemId};
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -10,8 +8,22 @@ pub struct Stage {
     // TODO: Also/alternatively, we should be using async RwLocks here, to allow for async rendering, probably
     pub root: StagedItemId,
     pub items: HashMap<StagedItemId, StagedItem>,
+    pub selection: Vec<StagedItemId>,
 }
 
+// TODO: This is not needed after we are no longer using the example stage
+impl Default for Stage {
+    fn default() -> Self {
+        Self {
+            size: (800, 600),
+            root: StagedItemId::new(),
+            items: HashMap::new(),
+            selection: Vec::new(),
+        }
+    }
+}
+
+// TODO: Move these functions to separate modules/files
 impl Stage {
     // TODO: Background color should be a color type (consistency with other parts of the codebase)
     // TODO: Background color should be optional, or a pattern (like how Photoshop does transparency)
@@ -20,7 +32,7 @@ impl Stage {
         let root = StagedItem {
             id: root_id,
             name: "root".to_string(),
-            item: Item::Image(ItemImage::from_rect(width, height, "red", 1.0)?),
+            item: Item::Image(ItemImage::from_rect(width, height, "red", None, 1.0)?),
             children: Vec::new(),
             parent: None,
             transform: RelativeTransform::default(),
@@ -32,6 +44,7 @@ impl Stage {
             size: (width, height),
             root: root_id,
             items,
+            selection: Vec::new(),
         })
     }
 
@@ -134,6 +147,56 @@ impl Stage {
 
         Ok(())
     }
+
+    pub fn set_selection(&mut self, selection: Vec<StagedItemId>) {
+        self.selection = selection;
+    }
+
+    pub fn get_selections(&self) -> Vec<&StagedItem> {
+        self.selection
+            .iter()
+            .filter_map(|id| self.items.get(id))
+            .collect()
+    }
+
+    pub fn get_front_item_at(&self, x: f32, y: f32, include_root: bool) -> Option<StagedItemId> {
+        // TODO: We need to add Z-index (render order) support, which will affect how this selects items
+        // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker
+        // TODO: Caching will help this
+        let render_ordered = self.get_render_order();
+        crate::log!("Render ordered: {:?}", render_ordered);
+        for item_id in render_ordered.into_iter().rev() {
+            if !include_root && item_id == self.root {
+                continue;
+            }
+
+            let item = self.items.get(&item_id).unwrap();
+            if item.contains_point(x, y, self) {
+                return Some(item_id);
+            }
+        }
+        None
+    }
+
+    pub fn get_render_order(&self) -> Vec<StagedItemId> {
+        // TODO: We need to add Z-index (render order) support, which will affect how this selects items
+        // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker
+        // TODO: Maybe we should use a BTreeMap here, to keep the order sorted, or a VecDeque to keep the order, or PartialEq implemntation, or something
+        // TODO: Caching will help this
+        let mut render_order = Vec::new();
+
+        fn get_render_order_recursive(stage: &Stage, item_id: StagedItemId) -> Vec<StagedItemId> {
+            let item = stage.items.get(&item_id).unwrap();
+            let mut render_order = vec![item_id];
+            for child in &item.children {
+                render_order.extend(get_render_order_recursive(stage, *child));
+            }
+            render_order
+        }
+        render_order.extend(get_render_order_recursive(self, self.root));
+
+        render_order
+    }
 }
 
 // TODO: Remove, this is just for testing of WASM rendering before other features are implemented
@@ -144,7 +207,7 @@ pub fn example_stage() -> crate::Result<Stage> {
     stage.add_child(
         "Rectangle".to_string(),
         None,
-        ItemImage::from_rect(300, 200, "blue", 0.5)?.into(),
+        ItemImage::from_rect(300, 200, "blue", None, 0.5)?.into(),
         None,
     )?;
 
@@ -152,32 +215,34 @@ pub fn example_stage() -> crate::Result<Stage> {
     // TODO: Render order (z-index)
 
     // Add example text and image
-    let image = stage.add_child(
-        "Image".to_string(),
-        None,
-        Item::Image(ItemImage {
-            viewport_height: 200.0,
-            viewport_width: 300.0,
-            data: ItemImageData::Jpeg(include_bytes!("../../../testimg.jpg").to_vec().into()),
-        }),
-        Some(RelativeTransform {
-            position: (50.0, 50.0),
-            scale: (0.5, 0.5),
-            rotation: 45.0,
-        }),
-    )?;
+    let image = ItemImage::from_bytes(include_bytes!("../../../testimg.jpg").to_vec(), "jpg")?
+        .map(|im| {
+            stage.add_child(
+                "Image".to_string(),
+                None,
+                Item::Image(im),
+                Some(RelativeTransform {
+                    position: (50.0, 50.0),
+                    scale: (0.5, 0.5),
+                    rotation: 45.0,
+                }),
+            )
+        })
+        .transpose()?;
 
     // Add example text and image
-    stage.add_child(
-        "Text".to_string(),
-        Some(image),
-        Item::Text(ItemText::build("Hello, world!".to_string())),
-        Some(RelativeTransform {
-            position: (100.0, 50.0),
-            scale: (1.0, 5.0),
-            rotation: -90.0, // Perpendicular to the image, not the stage
-        }),
-    )?;
+    if let Some(image) = image {
+        stage.add_child(
+            "Text".to_string(),
+            Some(image),
+            Item::Text(ItemText::build("Hello, world!".to_string())),
+            Some(RelativeTransform {
+                position: (100.0, 50.0),
+                scale: (1.0, 5.0),
+                rotation: -90.0, // Perpendicular to the image, not the stage
+            }),
+        )?;
+    }
 
     Ok(stage)
 }
