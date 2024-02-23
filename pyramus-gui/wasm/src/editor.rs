@@ -93,7 +93,9 @@ impl EditorRuntime {
         EditorRuntime {
             // TODO: Load from file, etc
             // TODO: When no longer a prototype, this should not need to be unwrapped
-            stage: pyramus::models::stage::example_stage().inspect_err(|e| pyramus::log!("Err: {e}")).unwrap_or_default(),
+            stage: pyramus::models::stage::example_stage()
+                .inspect_err(|e| pyramus::log!("Err: {e}"))
+                .unwrap_or_default(),
         }
     }
 
@@ -109,7 +111,10 @@ impl EditorRuntime {
         Ok(frontend_commands)
     }
 
-    pub fn input(&mut self, event: pyramus::input::InputEvent) -> Result<Vec<FrontendCommand>, JsError> {
+    pub fn input(
+        &mut self,
+        event: pyramus::input::InputEvent,
+    ) -> Result<Vec<FrontendCommand>, JsError> {
         Ok(event.process(&mut self.stage)?)
     }
 

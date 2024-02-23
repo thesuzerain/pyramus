@@ -56,14 +56,20 @@ impl Stage {
 
         Ok(tree)
     }
-
 }
 
 impl StagedItem {
     // From Graphite
     fn to_transform(transform: Affine2) -> usvg::Transform {
         let cols = transform.to_cols_array();
-        usvg::Transform::from_row(cols[0] as f32, cols[1] as f32, cols[2] as f32, cols[3] as f32, cols[4] as f32, cols[5] as f32)
+        usvg::Transform::from_row(
+            cols[0],
+            cols[1],
+            cols[2],
+            cols[3],
+            cols[4],
+            cols[5],
+        )
     }
 
     pub fn to_usvg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
@@ -87,13 +93,12 @@ impl StagedItem {
         })))
     }
 
-    pub fn to_outline_svg_node(&self, stage : &Stage) -> crate::Result<usvg::Node> {
-        
+    pub fn to_outline_svg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
         let outline_size = 20.0;
 
-        // Get bounds of node 
+        // Get bounds of node
         // TODO: NEed consistency between x1x2 and xywh formats
-        let (x0, y0, x1, y1)  = self.item.get_local_bounds();
+        let (x0, y0, x1, y1) = self.item.get_local_bounds();
         let transform = Self::to_transform(self.get_screen_transform(stage));
 
         let x0 = x0 - outline_size;
@@ -101,27 +106,33 @@ impl StagedItem {
         let x1 = x1 + outline_size;
         let y1 = y1 + outline_size;
 
-        crate::log!("Outline for : {x0} {y0}, {x1} {y1}, width: {w}, height: {h}", w = x1 - x0, h = y1 - y0);
+        crate::log!(
+            "Outline for : {x0} {y0}, {x1} {y1}, width: {w}, height: {h}",
+            w = x1 - x0,
+            h = y1 - y0
+        );
         let image = usvg::Node::Image(Box::new(usvg::Image {
             id: String::new(),
             abs_transform: Transform::identity(), // Set on postprocessing, not here
             bounding_box: None,
             visibility: usvg::Visibility::Visible,
             view_box: usvg::ViewBox {
-                rect: usvg::NonZeroRect::from_ltrb(
-                    x0,
-                    y0,
-                    x1,
-                    y1,
-                )
-                .ok_or_else(|| {
+                rect: usvg::NonZeroRect::from_ltrb(x0, y0, x1, y1).ok_or_else(|| {
                     crate::log!("Invalid size to_outline_svg_node: {x0}, {y0}, {x1}, {y1}");
                     PyramusError::InvalidSize(x1 - x0, y1 - y0)
                 })?,
                 aspect: usvg::AspectRatio::default(),
             },
             rendering_mode: usvg::ImageRendering::OptimizeSpeed,
-            kind: ItemImage::from_rect((x1 - x0) as u32, (y1 - y0) as u32, "blue", Some(outline_size as u32), 0.5)?.data.into()
+            kind: ItemImage::from_rect(
+                (x1 - x0) as u32,
+                (y1 - y0) as u32,
+                "blue",
+                Some(outline_size as u32),
+                0.5,
+            )?
+            .data
+            .into(),
         }));
 
         Ok(usvg::Node::Group(Box::new(usvg::Group {
@@ -129,9 +140,7 @@ impl StagedItem {
             children: vec![image],
             ..Default::default()
         })))
-
     }
-
 }
 
 impl Item {
@@ -232,7 +241,7 @@ impl Item {
                     aspect: usvg::AspectRatio::default(),
                 },
                 rendering_mode: usvg::ImageRendering::OptimizeSpeed,
-                kind: image.data.clone().into()
+                kind: image.data.clone().into(),
             }))),
         }
     }

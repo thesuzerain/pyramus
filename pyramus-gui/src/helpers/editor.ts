@@ -24,7 +24,7 @@ export function deleteItem(item: number) {
 
 // TODO: Can we attach this to the stage object?
 export function selectItems(items: number[]) {
-  const itemsUint32 = new Uint32Array(items);
+  const itemsUint32 = new Uint32Array(items)
   selectObjects(itemsUint32)
 }
 

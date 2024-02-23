@@ -1,4 +1,7 @@
-use crate::{command::{BackendCommand, FrontendCommand}, models::stage::Stage};
+use crate::{
+    command::{BackendCommand, FrontendCommand},
+    models::stage::Stage,
+};
 
 pub enum InputEvent {
     Click { x: f32, y: f32 },
@@ -14,7 +17,8 @@ impl InputEvent {
                 crate::log!("Found item: {:?}", item_id);
                 let new_selection = if let Some(item_id) = item_id {
                     // If the current selection is exactly the same as the clicked item, then we should clear the selection
-                    if stage.get_selections().len() == 1 && stage.get_selections()[0].id == item_id {
+                    if stage.get_selections().len() == 1 && stage.get_selections()[0].id == item_id
+                    {
                         vec![]
                     } else {
                         vec![item_id]

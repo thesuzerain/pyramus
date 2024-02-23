@@ -1,6 +1,4 @@
-use super::item::{
-    Item, ItemImage, ItemText, RelativeTransform, StagedItem, StagedItemId,
-};
+use super::item::{Item, ItemImage, ItemText, RelativeTransform, StagedItem, StagedItemId};
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -13,6 +11,7 @@ pub struct Stage {
     pub selection: Vec<StagedItemId>,
 }
 
+// TODO: This is not needed after we are no longer using the example stage
 impl Default for Stage {
     fn default() -> Self {
         Self {
@@ -160,7 +159,7 @@ impl Stage {
             .collect()
     }
 
-    pub fn get_front_item_at(&self, x: f32, y: f32, include_root : bool) -> Option<StagedItemId> {
+    pub fn get_front_item_at(&self, x: f32, y: f32, include_root: bool) -> Option<StagedItemId> {
         // TODO: We need to add Z-index (render order) support, which will affect how this selects items
         // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker
         // TODO: Caching will help this
@@ -170,7 +169,7 @@ impl Stage {
             if !include_root && item_id == self.root {
                 continue;
             }
-            
+
             let item = self.items.get(&item_id).unwrap();
             if item.contains_point(x, y, self) {
                 return Some(item_id);
@@ -185,10 +184,8 @@ impl Stage {
         // TODO: Maybe we should use a BTreeMap here, to keep the order sorted, or a VecDeque to keep the order, or PartialEq implemntation, or something
         // TODO: Caching will help this
         let mut render_order = Vec::new();
-        
-        fn get_render_order_recursive(
-            stage: &Stage,
-            item_id: StagedItemId) -> Vec<StagedItemId> {
+
+        fn get_render_order_recursive(stage: &Stage, item_id: StagedItemId) -> Vec<StagedItemId> {
             let item = stage.items.get(&item_id).unwrap();
             let mut render_order = vec![item_id];
             for child in &item.children {
@@ -218,16 +215,20 @@ pub fn example_stage() -> crate::Result<Stage> {
     // TODO: Render order (z-index)
 
     // Add example text and image
-    let image = ItemImage::from_bytes(include_bytes!("../../../testimg.jpg").to_vec(), "jpg")?.map(|im| stage.add_child(
-        "Image".to_string(),
-        None,
-        Item::Image(im),
-        Some(RelativeTransform {
-            position: (50.0, 50.0),
-            scale: (0.5, 0.5),
-            rotation: 45.0,
-        }),
-    )).transpose()?;
+    let image = ItemImage::from_bytes(include_bytes!("../../../testimg.jpg").to_vec(), "jpg")?
+        .map(|im| {
+            stage.add_child(
+                "Image".to_string(),
+                None,
+                Item::Image(im),
+                Some(RelativeTransform {
+                    position: (50.0, 50.0),
+                    scale: (0.5, 0.5),
+                    rotation: 45.0,
+                }),
+            )
+        })
+        .transpose()?;
 
     // Add example text and image
     if let Some(image) = image {

@@ -1,9 +1,9 @@
+use super::stage::Stage;
 use glam::Vec2;
+use image::io::Reader as ImageReader;
 use js_sys::Math::random;
 use resvg::usvg::{self, NonZeroPositiveF32};
 use std::{io::Cursor, sync::Arc};
-use image::io::Reader as ImageReader;
-use super::stage::Stage;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StagedItemId(pub u32);
@@ -38,36 +38,45 @@ pub struct StagedItem {
 }
 
 impl StagedItem {
-    pub fn contains_point(&self, x: f32, y: f32, stage : &Stage) -> bool {
+    pub fn contains_point(&self, x: f32, y: f32, stage: &Stage) -> bool {
+        // Get transform of current item
         let transform = self.get_screen_transform(stage);
-        let click = glam::Vec2::new(x, y);
-        let click = transform.inverse().transform_point2(click);
+
+        // Get the click in local space and check if it's within the bounds of the item
+        let click = transform.inverse().transform_point2(glam::Vec2::new(x, y));
         let (x0, y0, x1, y1) = self.item.get_local_bounds();
         click.x >= x0 && click.x <= x1 && click.y >= y0 && click.y <= y1
     }
 
-    pub fn get_screen_transform(&self, stage : &Stage) -> glam::Affine2 {
+    pub fn get_screen_transform(&self, stage: &Stage) -> glam::Affine2 {
         // TODO: If we add 3d, this needs a projection matrix/camera and world space as an intermediate step
         let transform = self.transform.to_glam_affine();
         if let Some(parent_id) = self.parent {
             let parent_item = stage.items.get(&parent_id).expect("Parent item not found");
-            transform * parent_item.get_screen_transform(stage) 
+            transform * parent_item.get_screen_transform(stage)
         } else {
             transform
         }
     }
 
     // x0, y0, x1, y1
-    pub fn get_bounds(&self, stage : &Stage) -> (f32, f32, f32, f32) {
+    pub fn get_bounds(&self, stage: &Stage) -> (f32, f32, f32, f32) {
         let (x0, y0, x1, y1) = self.item.get_local_bounds();
 
         let transform = self.get_screen_transform(stage);
-        crate::log!("Transform for {name}: {transform}, onto {x0} {y0}, {x1} {y1}", name = self.name);
-        let Vec2 { x: x0, y : y0} = transform.transform_point2(glam::Vec2::new(x0 , y0));
-        let Vec2 { x: x1, y: y1} = transform.transform_point2(glam::Vec2::new(x1 , y1));
+        crate::log!(
+            "Transform for {name}: {transform}, onto {x0} {y0}, {x1} {y1}",
+            name = self.name
+        );
+        let Vec2 { x: x0, y: y0 } = transform.transform_point2(glam::Vec2::new(x0, y0));
+        let Vec2 { x: x1, y: y1 } = transform.transform_point2(glam::Vec2::new(x1, y1));
 
-        (f32::min(x0,x1), f32::min(y0,y1), f32::max(x0,x1), f32::max(y0,y1))
-
+        (
+            f32::min(x0, x1),
+            f32::min(y0, y1),
+            f32::max(x0, x1),
+            f32::max(y0, y1),
+        )
     }
 }
 
@@ -95,7 +104,11 @@ impl RelativeTransform {
         let (x, y) = self.position;
         let (sx, sy) = self.scale;
         let r = self.rotation.to_radians();
-        glam::Affine2::from_scale_angle_translation(glam::Vec2::new(sx, sy), r, glam::Vec2::new(x, y))
+        glam::Affine2::from_scale_angle_translation(
+            glam::Vec2::new(sx, sy),
+            r,
+            glam::Vec2::new(x, y),
+        )
     }
 }
 
@@ -173,15 +186,16 @@ impl ItemImage {
         // TODO: find a different way to get height/width (especially given that files will be dynamically uploaded- can get size through that)
         // TODO: This may only apply to right now when we are using include_bytes! to load the image
         // This is very awkward, but it seems like we cant get the bytes back out without rewriting it.
-        let img = ImageReader::new(Cursor::new(bytes)).with_guessed_format()?.decode()?;
+        // TODO: It might be good to just straight-up use DynamicImage in ItemImage
+        let img = ImageReader::new(Cursor::new(bytes))
+            .with_guessed_format()?
+            .decode()?;
         let viewport_width = img.width() as f32;
         let viewport_height = img.height() as f32;
 
         let mut bytes: Vec<u8> = Vec::new();
         img.write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png)?;
-        
-        // TODO: It might be good to just straight-up use DynamicImage in ItemImage
-        // let bytes = img.into_bytes().to_vec();
+
         let data = match ext {
             "png" => Some(ItemImageData::Png(Arc::new(bytes))),
             "jpg" | "jpeg" => Some(ItemImageData::Jpeg(Arc::new(bytes))),
@@ -220,10 +234,18 @@ impl ItemImage {
     // Creates a simple SVG tree with a rectangle
     // TODO: This is for testing purposes only
     // Alpha is a value between 0.0 and 1.0
-    pub fn from_rect(w: u32, h: u32, color: &str, stroke : Option<u32>, alpha: f32) -> Result<ItemImage, usvg::Error> {
+    pub fn from_rect(
+        w: u32,
+        h: u32,
+        color: &str,
+        stroke: Option<u32>,
+        alpha: f32,
+    ) -> Result<ItemImage, usvg::Error> {
         let stroke = match stroke {
-            Some(stroke) => format!(r#"stroke="{color}" stroke-width="{stroke}" fill="{color}" fill-opacity="{alpha}"#,),
-            None => format!(r#"fill="{color}" fill-opacity="{alpha}"#)
+            Some(stroke) => format!(
+                r#"stroke="{color}" stroke-width="{stroke}" fill="{color}" fill-opacity="{alpha}"#,
+            ),
+            None => format!(r#"fill="{color}" fill-opacity="{alpha}"#),
         };
 
         Self::from_svg_string(&format!(
@@ -235,7 +257,6 @@ impl ItemImage {
         ))
     }
 }
-
 
 impl From<ItemImageData> for usvg::ImageKind {
     fn from(data: ItemImageData) -> Self {

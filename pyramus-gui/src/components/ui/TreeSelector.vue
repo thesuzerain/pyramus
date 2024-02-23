@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { selectItems } from '@/helpers/editor';
+import { selectItems } from '@/helpers/editor'
 import { type FrontendItem } from '/wasm/pkg/pyramus_wasm'
 import { computed, type PropType } from 'vue'
 

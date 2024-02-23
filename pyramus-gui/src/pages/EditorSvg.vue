@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router'
 import { computed, ref } from 'vue'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
 import { getStageObject } from '@/helpers/editor'
-import {subscribe } from '@/helpers/messages'
+import { subscribe } from '@/helpers/messages'
 import ItemEditor from '@/components/ui/ItemEditor.vue'
 import TreeSelector from '@/components/ui/TreeSelector.vue'
 import ItemWindow from '@/components/ui/ItemWindow.vue'
@@ -25,14 +25,12 @@ const selectedItem = computed(() => {
 subscribe('UpdateStage', async () => {
   stageObject.value = getStageObject()
 })
-
 </script>
 
 <template>
   <div class="container">
     <div class="page-container">
       <ItemWindow :stage="stageObject" />
-      {{ stageObject }}
     </div>
     <div class="tool-container">
       <div class="tool-section">
@@ -40,10 +38,7 @@ subscribe('UpdateStage', async () => {
           <ItemEditor :key="selectedItem.id" :item="selectedItem" />
         </div>
         <div class="tree-view">
-          <TreeSelector
-            :items="stageObject.items"
-            :selected-item-id="selectedItem?.id"
-          />
+          <TreeSelector :items="stageObject.items" :selected-item-id="selectedItem?.id" />
         </div>
       </div>
     </div>

@@ -11,7 +11,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct FrontendStage {
     pub items: HashMap<u32, FrontendItem>,
-    pub selected : Vec<u32>,
+    pub selected: Vec<u32>,
 }
 
 #[derive(Tsify, Serialize, Deserialize)]
