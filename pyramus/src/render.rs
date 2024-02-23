@@ -39,10 +39,8 @@ impl Stage {
         }
 
         // Add outlines overtop of the nodes
-        for item in self.items.values() {
-            if item.outlined {
-                tree.root.children.push(item.to_outline_svg_node(self)?);
-            }
+        for item in self.get_selections() {
+            tree.root.children.push(item.to_outline_svg_node(self)?);
         }
 
         // Postprocessing step

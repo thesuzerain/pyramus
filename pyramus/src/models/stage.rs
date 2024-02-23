@@ -36,7 +36,6 @@ impl Stage {
             item: Item::Image(ItemImage::from_rect(width, height, "red", None, 1.0)?),
             children: Vec::new(),
             parent: None,
-            outlined: false,
             transform: RelativeTransform::default(),
         };
         let mut items = HashMap::new();
@@ -57,7 +56,6 @@ impl Stage {
         parent: Option<StagedItemId>,
         item: Item,
         transform: Option<RelativeTransform>,
-        outlined: bool,
     ) -> crate::Result<StagedItemId> {
         let id = StagedItemId::new();
         let parent = parent.unwrap_or(self.root);
@@ -66,7 +64,6 @@ impl Stage {
             id,
             name,
             item,
-            outlined,
             children: Vec::new(),
             parent: Some(parent),
             transform: transform.unwrap_or_default(),
@@ -156,13 +153,24 @@ impl Stage {
         self.selection = selection;
     }
 
-    pub fn get_item_at(&self, x: f32, y: f32) -> Option<StagedItemId> {
+    pub fn get_selections(&self) -> Vec<&StagedItem> {
+        self.selection
+            .iter()
+            .filter_map(|id| self.items.get(id))
+            .collect()
+    }
+
+    pub fn get_front_item_at(&self, x: f32, y: f32, include_root : bool) -> Option<StagedItemId> {
         // TODO: We need to add Z-index (render order) support, which will affect how this selects items
         // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker
         // TODO: Caching will help this
         let render_ordered = self.get_render_order();
         crate::log!("Render ordered: {:?}", render_ordered);
         for item_id in render_ordered.into_iter().rev() {
+            if !include_root && item_id == self.root {
+                continue;
+            }
+            
             let item = self.items.get(&item_id).unwrap();
             if item.contains_point(x, y, self) {
                 return Some(item_id);
@@ -204,7 +212,6 @@ pub fn example_stage() -> crate::Result<Stage> {
         None,
         ItemImage::from_rect(300, 200, "blue", None, 0.5)?.into(),
         None,
-        false,
     )?;
 
     // TODO: Easy way to center items within their parent/the stage
@@ -220,7 +227,6 @@ pub fn example_stage() -> crate::Result<Stage> {
             scale: (0.5, 0.5),
             rotation: 45.0,
         }),
-        true,
     )).transpose()?;
 
     // Add example text and image
@@ -234,9 +240,7 @@ pub fn example_stage() -> crate::Result<Stage> {
                 scale: (1.0, 5.0),
                 rotation: -90.0, // Perpendicular to the image, not the stage
             }),
-            false,
         )?;
-    
     }
 
     Ok(stage)

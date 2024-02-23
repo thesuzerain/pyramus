@@ -29,8 +29,6 @@ pub struct StagedItem {
 
     pub item: Item,
 
-    pub outlined : bool,
-
     // TODO: SlotMap/Arena
     // TODO: Should these be Weak<> or Rc<>- a direct reference to the parent?
     pub parent: Option<StagedItemId>,
@@ -46,7 +44,6 @@ impl StagedItem {
         let click = transform.inverse().transform_point2(click);
         let (x0, y0, x1, y1) = self.item.get_local_bounds();
         click.x >= x0 && click.x <= x1 && click.y >= y0 && click.y <= y1
-
     }
 
     pub fn get_screen_transform(&self, stage : &Stage) -> glam::Affine2 {
