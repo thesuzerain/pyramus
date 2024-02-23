@@ -4,6 +4,7 @@ use thiserror::Error;
 use wasm_bindgen::JsValue;
 
 pub mod command;
+pub mod input;
 pub mod logging;
 pub mod models;
 pub mod render;
@@ -32,6 +33,9 @@ pub enum PyramusError {
 
     #[error("Invalid size: {0}, {1}")]
     InvalidSize(f32, f32),
+
+    #[error("Image parsing error: {0}")]
+    ImageParsingError(#[from] image::ImageError),
 
     #[error("Other error: {0}")]
     OtherError(String),

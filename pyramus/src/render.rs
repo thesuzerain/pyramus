@@ -1,20 +1,15 @@
 use crate::{
     models::{
-        item::{Item, ItemImageData, StagedItem},
+        item::{Item, ItemImage, StagedItem},
         stage::Stage,
     },
     PyramusError,
 };
+use glam::Affine2;
 use svgtypes::parse_font_families;
 
-use resvg::{
-    tiny_skia,
-    usvg::{self, Font, FontStyle, TextSpan, Transform, XmlOptions},
-};
+use resvg::usvg::{self, Font, FontStyle, TextSpan, Transform, XmlOptions};
 use usvg::fontdb;
-
-use wasm_bindgen::{Clamped, JsCast};
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 impl Stage {
     pub fn to_usvg_tree(&self) -> crate::Result<usvg::Tree> {
@@ -43,6 +38,13 @@ impl Stage {
             tree.root.children.push(root.to_usvg_node(self)?);
         }
 
+        // Add outlines overtop of the nodes
+        for item in self.items.values() {
+            if item.outlined {
+                tree.root.children.push(item.to_outline_svg_node(self)?);
+            }
+        }
+
         // Postprocessing step
         // TODO: We shouldnt be repeatedly creating the fontdb- should be in a state, or something
         let mut fontdb = fontdb::Database::new();
@@ -56,14 +58,19 @@ impl Stage {
 
         Ok(tree)
     }
+
 }
 
 impl StagedItem {
+    // From Graphite
+    fn to_transform(transform: Affine2) -> usvg::Transform {
+        let cols = transform.to_cols_array();
+        usvg::Transform::from_row(cols[0] as f32, cols[1] as f32, cols[2] as f32, cols[3] as f32, cols[4] as f32, cols[5] as f32)
+    }
+
     pub fn to_usvg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
-        let transform = usvg::Transform::from_scale(self.transform.scale.0, self.transform.scale.1)
-            .post_rotate(self.transform.rotation)
-            .post_translate(self.transform.position.0, self.transform.position.1);
+        let transform = Self::to_transform(self.transform.to_glam_affine());
 
         // All nodes are contained in a group node, so we can apply the transform to the group node, and then apply the transform to the children nodes
         // TODO: Is this needed?
@@ -81,6 +88,52 @@ impl StagedItem {
             ..Default::default()
         })))
     }
+
+    pub fn to_outline_svg_node(&self, stage : &Stage) -> crate::Result<usvg::Node> {
+        
+        let outline_size = 20.0;
+
+        // Get bounds of node 
+        // TODO: NEed consistency between x1x2 and xywh formats
+        let (x0, y0, x1, y1)  = self.item.get_local_bounds();
+        let transform = Self::to_transform(self.get_screen_transform(stage));
+
+        let x0 = x0 - outline_size;
+        let y0 = y0 - outline_size;
+        let x1 = x1 + outline_size;
+        let y1 = y1 + outline_size;
+
+        crate::log!("Outline for : {x0} {y0}, {x1} {y1}, width: {w}, height: {h}", w = x1 - x0, h = y1 - y0);
+        let image = usvg::Node::Image(Box::new(usvg::Image {
+            id: String::new(),
+            abs_transform: Transform::identity(), // Set on postprocessing, not here
+            bounding_box: None,
+            visibility: usvg::Visibility::Visible,
+            view_box: usvg::ViewBox {
+                rect: usvg::NonZeroRect::from_ltrb(
+                    x0,
+                    y0,
+                    x1,
+                    y1,
+                )
+                .ok_or_else(|| {
+                    crate::log!("Invalid size to_outline_svg_node: {x0}, {y0}, {x1}, {y1}");
+                    PyramusError::InvalidSize(x1 - x0, y1 - y0)
+                })?,
+                aspect: usvg::AspectRatio::default(),
+            },
+            rendering_mode: usvg::ImageRendering::OptimizeSpeed,
+            kind: ItemImage::from_rect((x1 - x0) as u32, (y1 - y0) as u32, "blue", Some(outline_size as u32), 0.5)?.data.into()
+        }));
+
+        Ok(usvg::Node::Group(Box::new(usvg::Group {
+            transform,
+            children: vec![image],
+            ..Default::default()
+        })))
+
+    }
+
 }
 
 impl Item {
@@ -181,49 +234,10 @@ impl Item {
                     aspect: usvg::AspectRatio::default(),
                 },
                 rendering_mode: usvg::ImageRendering::OptimizeSpeed,
-                kind: match &image.data {
-                    ItemImageData::Png(data) => usvg::ImageKind::PNG(data.clone()),
-                    ItemImageData::Jpeg(data) => usvg::ImageKind::JPEG(data.clone()),
-                    ItemImageData::Gif(data) => usvg::ImageKind::GIF(data.clone()),
-                    ItemImageData::Svg(data) => usvg::ImageKind::SVG((**data).clone()),
-                },
+                kind: image.data.clone().into()
             }))),
         }
     }
-}
-
-pub fn render(stage: &Stage, canvas: &HtmlCanvasElement) -> crate::Result<()> {
-    let context = canvas
-        .get_context("2d")?
-        .ok_or_else(|| PyramusError::OtherError("Failed to get 2d context".to_string()))?
-        .dyn_into::<CanvasRenderingContext2d>()
-        .map_err(|_| PyramusError::OtherError("Failed to cast to 2d context".to_string()))?;
-    let canvas_width = canvas.width();
-    let canvas_height = canvas.height();
-
-    let tree = stage.to_usvg_tree()?;
-
-    let tree_size = tree.size.to_int_size();
-
-    let width_scale = canvas_width as f32 / tree_size.width() as f32;
-    let height_scale = canvas_width as f32 / tree_size.height() as f32;
-
-    let min_scale = width_scale.min(height_scale);
-    let transform = Transform::from_scale(min_scale, min_scale);
-
-    let mut pixmap = tiny_skia::Pixmap::new(canvas_width, canvas_height)
-        .ok_or_else(|| PyramusError::InvalidSize(canvas_width as f32, canvas_height as f32))?;
-
-    resvg::render(&tree, transform, &mut pixmap.as_mut());
-
-    let array: Clamped<&[u8]> = Clamped(pixmap.data());
-
-    let image_data =
-        web_sys::ImageData::new_with_u8_clamped_array_and_sh(array, canvas_width, canvas_height)
-            .map_err(PyramusError::from)?;
-
-    context.put_image_data(&image_data, 0.0, 0.0)?;
-    Ok(())
 }
 
 pub fn render_string(stage: &Stage) -> crate::Result<String> {

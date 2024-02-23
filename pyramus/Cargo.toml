@@ -18,6 +18,8 @@ thiserror = { workspace = true }
 js-sys = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
+glam = { workspace = true }
+image = { workspace = true }
 
 # TODO: Remove these dependencies (and any other unnecessary ones) 
 wasm-bindgen = { workspace = true }
