@@ -11,6 +11,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct FrontendStage {
     pub items: HashMap<u32, FrontendItem>,
+    pub selected : Vec<u32>,
 }
 
 #[derive(Tsify, Serialize, Deserialize)]
@@ -53,6 +54,7 @@ impl FrontendStage {
                 .iter()
                 .map(|(id, item)| (id.0, FrontendItem::from(item, stage)))
                 .collect::<HashMap<_, _>>(),
+            selected: stage.selection.iter().map(|id| id.0).collect(),
         }
     }
 }

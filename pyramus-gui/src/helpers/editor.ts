@@ -1,17 +1,13 @@
 import {
   imageBufferPointer,
-  testRenderResvg,
   testRenderStringResvg,
   getStage,
   removeObject,
   editTransform,
   renameObject,
+  selectObjects,
   type FrontendStage,
 } from '@/../wasm/pkg/pyramus_wasm.js'
-
-export function testRender(canvas: HTMLCanvasElement) {
-  testRenderResvg(canvas)
-}
 
 export function testRenderString() {
   return testRenderStringResvg() // TODO: should this take an argument?
@@ -24,6 +20,12 @@ export function getStageObject(): FrontendStage {
 // TODO: Can we attach this to the stage object?
 export function deleteItem(item: number) {
   removeObject(item)
+}
+
+// TODO: Can we attach this to the stage object?
+export function selectItems(items: number[]) {
+  const itemsUint32 = new Uint32Array(items);
+  selectObjects(itemsUint32)
 }
 
 // TODO: Can we attach this to the stage object?

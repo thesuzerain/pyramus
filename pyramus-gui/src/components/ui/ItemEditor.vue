@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-container">
+  <div class="editor-container" v-if="!item.is_root">
     <div class="tool-row">
       Name:
       <input

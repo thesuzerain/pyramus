@@ -1,44 +1,38 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
-import { testRenderString, getStageObject } from '@/helpers/editor'
-import { type UpdateStage, type Rerender, subscribe } from '@/helpers/messages'
+import { getStageObject } from '@/helpers/editor'
+import {subscribe } from '@/helpers/messages'
 import ItemEditor from '@/components/ui/ItemEditor.vue'
 import TreeSelector from '@/components/ui/TreeSelector.vue'
-import { type FrontendItem } from '/wasm/pkg/pyramus_wasm'
+import ItemWindow from '@/components/ui/ItemWindow.vue'
 
 const route = useRoute()
 const breadcrumbs = useBreadcrumbs()
 
 breadcrumbs.setContext({ name: 'EditorSvg', link: route.path })
 
-const canvasString = ref('')
 const stageObject = ref(getStageObject())
+const selectedItem = computed(() => {
+  const selectedIds = stageObject.value.selected
+  if (selectedIds.length !== 1) {
+    return undefined
+  }
+  return stageObject.value.items[selectedIds[0]]
+})
 
-canvasString.value = testRenderString()
-
-const selectedItem = ref<FrontendItem | undefined>(undefined)
-function updateSelectedItem(itemId: number) {
-  selectedItem.value = stageObject.value.items[itemId]
-  console.log('selectedItem', selectedItem.value)
-}
-
-subscribe('UpdateStage', async (data: UpdateStage) => {
-  console.log('UpdateStage', data)
+subscribe('UpdateStage', async () => {
   stageObject.value = getStageObject()
 })
 
-subscribe('Rerender', async (data: Rerender) => {
-  console.log('RenderImage', data)
-  canvasString.value = testRenderString()
-})
 </script>
 
 <template>
   <div class="container">
     <div class="page-container">
-      <div v-html="canvasString"></div>
+      <ItemWindow :stage="stageObject" />
+      {{ stageObject }}
     </div>
     <div class="tool-container">
       <div class="tool-section">
@@ -49,7 +43,6 @@ subscribe('Rerender', async (data: Rerender) => {
           <TreeSelector
             :items="stageObject.items"
             :selected-item-id="selectedItem?.id"
-            @update-value="updateSelectedItem"
           />
         </div>
       </div>
@@ -68,13 +61,6 @@ subscribe('Rerender', async (data: Rerender) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-.canvas {
-  // Todo: changeable size
-  width: 10rem;
-  height: 10rem;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
 }
 
 .tool-container {

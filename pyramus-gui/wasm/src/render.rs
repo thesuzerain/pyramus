@@ -12,14 +12,3 @@ pub fn test_render_string() -> Result<String, JsError> {
             .ok_or_else(|| pyramus::PyramusError::NoRuntimeFound)?
     })
 }
-
-#[wasm_bindgen(js_name = testRenderResvg)]
-pub fn test_render(canvas: &web_sys::HtmlCanvasElement) -> Result<(), JsError> {
-    editor::RUNTIME.with(|runtime| {
-        let runtime = runtime.borrow();
-        runtime
-            .as_ref()
-            .map(|runtime| runtime.render(canvas))
-            .ok_or_else(|| pyramus::PyramusError::NoRuntimeFound)?
-    })
-}

@@ -2,7 +2,7 @@
   <div class="tree-container">
     <div v-for="item in treeDisplay" :key="item.item.id">
       <div class="tree-item" :style="{ marginLeft: item.indent * 20 + 'px' }">
-        <button :disabled="item.item.is_root" @click="$emit('update-value', item.item.id)">
+        <button :disabled="item.item.is_root" @click="selectItems([item.item.id])">
           {{ item.item.name }}
         </button>
       </div>
@@ -11,6 +11,7 @@
 </template>
 
 <script setup lang="ts">
+import { selectItems } from '@/helpers/editor';
 import { type FrontendItem } from '/wasm/pkg/pyramus_wasm'
 import { computed, type PropType } from 'vue'
 

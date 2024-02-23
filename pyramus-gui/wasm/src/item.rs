@@ -17,6 +17,14 @@ pub fn remove_object(item_id: u32) -> Result<(), JsError> {
     Ok(())
 }
 
+#[wasm_bindgen(js_name = selectObjects)]
+pub fn select_objects(item_ids: Vec<u32>) -> Result<(), JsError> {
+    command([BackendCommand::SetSelection(
+        item_ids.into_iter().map(StagedItemId).collect(),
+    )])?;
+    Ok(())
+}
+
 #[wasm_bindgen(js_name = renameObject)]
 pub fn rename_object(item_id: u32, name: String) -> Result<(), JsError> {
     command([BackendCommand::RenameItem(StagedItemId(item_id), name)])?;
