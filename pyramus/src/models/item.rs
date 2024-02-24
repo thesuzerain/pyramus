@@ -268,3 +268,50 @@ impl From<ItemImageData> for usvg::ImageKind {
         }
     }
 }
+
+pub enum ItemBuilder {
+    Text {
+        text: String,
+        font_family: String,
+        font_size: f32,
+        color: (u8, u8, u8),
+        italic: bool,
+    },
+    ImageFromSvg(String),
+    ImageFromBytes {
+        bytes: Vec<u8>,
+        ext: String,
+    },
+}
+
+impl ItemBuilder {
+    pub fn build(self) -> crate::Result<Item> {
+        match self {
+            ItemBuilder::Text {
+                text,
+                font_family,
+                font_size,
+                color,
+                italic,
+            } => Ok(Item::Text(ItemText {
+                text,
+                font_family,
+                font_size: NonZeroPositiveF32::new(font_size).ok_or_else(|| {
+                    crate::PyramusError::OtherError("Font size must be greater than 0".to_string())
+                })?,
+                color,
+                italic,
+            })),
+            ItemBuilder::ImageFromSvg(svg) => {
+                let image = ItemImage::from_svg_string(&svg)?;
+                Ok(Item::Image(image))
+            }
+            ItemBuilder::ImageFromBytes { bytes, ext } => {
+                let image = ItemImage::from_bytes(bytes, &ext)?.ok_or_else(|| {
+                    crate::PyramusError::OtherError("Could not parse image".to_string())
+                })?;
+                Ok(Item::Image(image))
+            }
+        }
+    }
+}

@@ -1,10 +1,16 @@
 use super::FrontendCommand;
 use crate::models::{
-    item::{RelativeTransform, StagedItemId},
+    item::{ItemBuilder, RelativeTransform, StagedItemId},
     stage::Stage,
 };
 
 pub enum BackendCommand {
+    CreateItem {
+        name: String,
+        parent: StagedItemId,
+        new_item: ItemBuilder,
+    },
+
     // Selection
     SetSelection(Vec<StagedItemId>),
 
@@ -17,6 +23,16 @@ pub enum BackendCommand {
 impl BackendCommand {
     pub fn process(self, stage: &mut Stage) -> crate::Result<Vec<FrontendCommand>> {
         let frontend_commands = match self {
+            Self::CreateItem {
+                name,
+                parent,
+                new_item,
+            } => {
+                let item = new_item.build()?;
+                let item_id = stage.add_child(name, Some(parent), item, None)?;
+                stage.set_selection(vec![item_id]);
+                vec![FrontendCommand::UpdateStage]
+            }
             Self::SetSelection(selection) => {
                 stage.set_selection(selection);
                 vec![FrontendCommand::UpdateStage]

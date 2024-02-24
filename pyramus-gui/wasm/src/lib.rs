@@ -1,11 +1,12 @@
 use wasm_bindgen::prelude::*;
 
+pub mod create_image;
 pub mod editor;
 pub mod image;
 pub mod input;
 pub mod item;
 pub mod models;
-pub mod render;
+pub mod render; // TODO: rename
 
 #[wasm_bindgen(start)]
 pub fn init_app() {
