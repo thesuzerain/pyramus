@@ -62,14 +62,7 @@ impl StagedItem {
     // From Graphite
     fn to_transform(transform: Affine2) -> usvg::Transform {
         let cols = transform.to_cols_array();
-        usvg::Transform::from_row(
-            cols[0],
-            cols[1],
-            cols[2],
-            cols[3],
-            cols[4],
-            cols[5],
-        )
+        usvg::Transform::from_row(cols[0], cols[1], cols[2], cols[3], cols[4], cols[5])
     }
 
     pub fn to_usvg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {

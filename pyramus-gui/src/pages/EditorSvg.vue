@@ -7,11 +7,13 @@ import { subscribe } from '@/helpers/messages'
 import ItemEditor from '@/components/ui/ItemEditor.vue'
 import TreeSelector from '@/components/ui/TreeSelector.vue'
 import ItemWindow from '@/components/ui/ItemWindow.vue'
+import ItemCreatorModal from '@/components/ui/ItemCreatorModal.vue'
 
 const route = useRoute()
 const breadcrumbs = useBreadcrumbs()
-
 breadcrumbs.setContext({ name: 'EditorSvg', link: route.path })
+
+const itemCreatorModal = ref<typeof ItemCreatorModal | undefined>(undefined)
 
 const stageObject = ref(getStageObject())
 const selectedItem = computed(() => {
@@ -20,6 +22,10 @@ const selectedItem = computed(() => {
     return undefined
   }
   return stageObject.value.items[selectedIds[0]]
+})
+
+const rootItem = computed(() => {
+  return Object.values(stageObject.value.items).find((item) => item.is_root)
 })
 
 subscribe('UpdateStage', async () => {
@@ -35,14 +41,20 @@ subscribe('UpdateStage', async () => {
     <div class="tool-container">
       <div class="tool-section">
         <div v-if="selectedItem" class="tools-list">
-          <ItemEditor :key="selectedItem.id" :item="selectedItem" />
+          <ItemEditor
+            :key="selectedItem.id"
+            :item="selectedItem"
+            :create-item-modal="itemCreatorModal"
+          />
         </div>
         <div class="tree-view">
           <TreeSelector :items="stageObject.items" :selected-item-id="selectedItem?.id" />
         </div>
+        <button @click="itemCreatorModal?.show(rootItem)">Create item</button>
       </div>
     </div>
   </div>
+  <ItemCreatorModal ref="itemCreatorModal" />
 </template>
 
 <style lang="scss" scoped>
@@ -64,6 +76,7 @@ subscribe('UpdateStage', async () => {
   align-items: right;
   justify-content: space-between;
   height: 100%;
+  width: 100%; // TODO: When canvas is resizable, this should be smaller
   background-color: var(--color-raised-bg);
   box-shadow: var(--shadow-inset-sm), var(--shadow-floating);
   padding: var(--gap-md);

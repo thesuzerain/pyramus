@@ -41,16 +41,21 @@
         v-model.number="scaleValue[0]"
         type="number"
         class="number-input"
+        step="0.1"
         @input="updateTransform"
       />
       <input
         v-model.number="scaleValue[1]"
         type="number"
         class="number-input"
+        step="0.1"
         @input="updateTransform"
       />
     </div>
-    <Button @click="removeItem">Delete</Button>
+    <div class="button-row">
+      <Button @click="props.createItemModal?.show(item)">Create child</Button>
+      <Button @click="removeItem">Delete</Button>
+    </div>
   </div>
 </template>
 
@@ -60,10 +65,15 @@ import { ref, type PropType } from 'vue'
 import { deleteItem, editItemName, editItemTransform } from '@/helpers/editor'
 
 import Button from '@/components/ui/Button.vue'
+import type ItemCreatorModal from '@/components/ui/ItemCreatorModal.vue'
 
 const props = defineProps({
   item: {
     type: Object as PropType<FrontendItem>,
+    default: null,
+  },
+  createItemModal: {
+    type: Object as PropType<typeof ItemCreatorModal>,
     default: null,
   },
 })
@@ -106,5 +116,11 @@ const removeItem = () => {
 
 .text-entry-input {
   margin: 5px;
+}
+
+.button-row {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
 }
 </style>
