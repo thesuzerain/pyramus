@@ -1,0 +1,66 @@
+name: "Deploy to Cloudflare Pages"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches:
+      - master
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Deploy Env
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Clone and checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install Node dependencies
+        run: |
+          cd pyramus-gui
+          npm ci
+
+      - name: Cache Cargo directories and build artifacts
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install wasm-pack
+        run: |
+          cargo install wasm-pack
+
+      - name: Build Pyramus web code
+        env:
+          NODE_ENV: production
+        run: |
+          cd pyramus-gui
+          npm run build
+
+      - name: Publish to Cloudflare Pages
+        id: cloudflare
+        uses: cloudflare/pages-action@1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          projectName: pyramus
+          directory: pyramus-gui/dist
+          branch: master

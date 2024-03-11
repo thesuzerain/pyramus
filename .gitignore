@@ -15,3 +15,5 @@ Cargo.lock
 
 # Vite config logs
 vite.config.js.*
+
+.env

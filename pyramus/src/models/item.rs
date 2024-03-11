@@ -3,7 +3,7 @@ use glam::Vec2;
 use image::io::Reader as ImageReader;
 use js_sys::Math::random;
 use resvg::usvg::{self, NonZeroPositiveF32};
-use std::{io::Cursor, sync::Arc};
+use std::{io::Cursor, rc::Rc, sync::Arc};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StagedItemId(pub u32);
@@ -175,7 +175,7 @@ pub enum ItemImageData {
     Png(Arc<Vec<u8>>),
     Jpeg(Arc<Vec<u8>>),
     Gif(Arc<Vec<u8>>),
-    Svg(Arc<usvg::Tree>),
+    Svg(Rc<usvg::Tree>),
 }
 
 impl ItemImage {
@@ -209,7 +209,7 @@ impl ItemImage {
                         return Ok(None);
                     }
                 };
-                Some(ItemImageData::Svg(Arc::new(tree)))
+                Some(ItemImageData::Svg(Rc::new(tree)))
             }
             _ => None,
         };
@@ -225,7 +225,7 @@ impl ItemImage {
         let tree_height = tree.size.height();
         let tree_width = tree.size.width();
         Ok(ItemImage {
-            data: ItemImageData::Svg(Arc::new(tree)),
+            data: ItemImageData::Svg(Rc::new(tree)),
             viewport_width: tree_width,
             viewport_height: tree_height,
         })
