@@ -14,33 +14,33 @@ jobs:
       deployments: write
 
     steps:
-      - name: 📥 Clone and checkout repository
+      - name: Clone and checkout repository
         uses: actions/checkout@v3
 
-      - name: 🟢 Set up Node
+      - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: "16"
 
-      - name: 🚧 Install Node dependencies
+      - name: Install Node dependencies
         run: |
-          cd frontend
+          cd pyramus-gui
           npm ci
 
-      - name: 🦀 Update Rust to latest stable
+      - name: Update Rust to latest stable
         run: |
           rustc --version
           rustup update stable
           rustc --version
 
-      - name: 🌐 Build Pyramus web code
+      - name: Build Pyramus web code
         env:
           NODE_ENV: production
         run: |
-          cd frontend
+          cd pyramus-gui
           mold -run npm run build
 
-      - name: 📤 Publish to Cloudflare Pages
+      - name: Publish to Cloudflare Pages
         id: cloudflare
         uses: cloudflare/pages-action@1
         with:
