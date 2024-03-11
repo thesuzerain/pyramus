@@ -1,6 +1,12 @@
 <template>
   <div class="window-container">
-    <div ref="clickableDiv" @click="click" v-html="canvasString"></div>
+    <div
+      ref="clickableDiv"
+      @mousedown="mouseDown"
+      @mouseup="mouseUp"
+      @mousemove="mouseMove"
+      v-html="canvasString"
+    ></div>
   </div>
   {{ props.stage.selected }}
 </template>
@@ -10,7 +16,7 @@ import { type FrontendStage } from '/wasm/pkg/pyramus_wasm'
 import { ref, type PropType } from 'vue'
 import { testRenderString } from '@/helpers/editor'
 import { subscribe } from '@/helpers/messages'
-import { handleClick } from '@/helpers/input'
+import { handleMouseMove, handleMouseDown, handleMouseUp } from '@/helpers/input'
 
 const props = defineProps({
   stage: {
@@ -23,12 +29,22 @@ const clickableDiv = ref<HTMLElement | undefined>(undefined)
 const canvasString = ref('')
 canvasString.value = testRenderString()
 
-const click = (event: MouseEvent) => {
+const mouseMove = (event: MouseEvent) => {
+  if (!clickableDiv.value) return
+  handleMouseMove(event.movementX, event.movementY)
+}
+
+const mouseDown = (event: MouseEvent) => {
   if (!clickableDiv.value) return
   const rect = clickableDiv.value.getBoundingClientRect()
   const x = event.clientX - rect.left
   const y = event.clientY - rect.top
-  handleClick(x, y)
+  handleMouseDown(x, y)
+}
+
+const mouseUp = () => {
+  if (!clickableDiv.value) return
+  handleMouseUp()
 }
 
 subscribe('Rerender', async () => {

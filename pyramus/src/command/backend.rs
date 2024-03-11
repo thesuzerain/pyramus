@@ -14,6 +14,9 @@ pub enum BackendCommand {
     // Selection
     SetSelection(Vec<StagedItemId>),
 
+    // TODO: Should this be EditTransform?
+    TranslateGroup(Vec<StagedItemId>, (f32, f32)),
+
     // Item Editing
     EditTransform(StagedItemId, RelativeTransform),
     RenameItem(StagedItemId, String),
@@ -42,7 +45,10 @@ impl BackendCommand {
                 vec![FrontendCommand::UpdateStage]
             }
             Self::EditTransform(item_id, transform) => {
-                stage.edit_item_transform(item_id, transform)?;
+                stage.edit_item_transform(item_id, |t| {
+                    *t = transform;
+                    Ok(())
+                })?;
                 vec![FrontendCommand::UpdateStage]
             }
             Self::RenameItem(item_id, name) => {
@@ -50,6 +56,16 @@ impl BackendCommand {
                     item.name = name;
                     Ok(())
                 })?;
+                vec![FrontendCommand::UpdateStage]
+            }
+            Self::TranslateGroup(item_ids, (x, y)) => {
+                for item_id in item_ids {
+                    stage.edit_item_transform(item_id, |t| {
+                        t.position.0 += x;
+                        t.position.1 += y;
+                        Ok(())
+                    })?;
+                }
                 vec![FrontendCommand::UpdateStage]
             }
         };
