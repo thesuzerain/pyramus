@@ -1,3 +1,5 @@
+use crate::input::MouseState;
+
 use super::item::{Item, ItemImage, ItemText, RelativeTransform, StagedItem, StagedItemId};
 use std::collections::HashMap;
 
@@ -9,6 +11,9 @@ pub struct Stage {
     pub root: StagedItemId,
     pub items: HashMap<StagedItemId, StagedItem>,
     pub selection: Vec<StagedItemId>,
+
+    // TODO: Should be exported to some other 'state'-type mechansms
+    pub mouse_state: MouseState,
 }
 
 // TODO: This is not needed after we are no longer using the example stage
@@ -19,6 +24,7 @@ impl Default for Stage {
             root: StagedItemId::new(),
             items: HashMap::new(),
             selection: Vec::new(),
+            mouse_state: MouseState::Idle,
         }
     }
 }
@@ -45,6 +51,7 @@ impl Stage {
             root: root_id,
             items,
             selection: Vec::new(),
+            mouse_state: MouseState::Idle,
         })
     }
 
@@ -95,7 +102,7 @@ impl Stage {
     pub fn edit_item_transform(
         &mut self,
         id: StagedItemId,
-        transform: RelativeTransform,
+        f: impl FnOnce(&mut RelativeTransform) -> crate::Result<()>,
     ) -> crate::Result<()> {
         // Cannot edit the root item
         if id == self.root {
@@ -105,8 +112,7 @@ impl Stage {
         }
 
         if let Some(item) = self.items.get_mut(&id) {
-            item.transform = transform;
-            Ok(())
+            f(&mut item.transform)
         } else {
             Err(crate::PyramusError::OtherError(
                 "Item not found".to_string(),
