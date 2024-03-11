@@ -44,12 +44,13 @@ jobs:
           cd pyramus-gui
           npm run build
 
-      - name: Cloudflare Pages deployment
-        uses: WalshyDev/cf-pages-await@v1
+      - name: Publish to Cloudflare Pages
+        id: cloudflare
+        uses: cloudflare/pages-action@1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          project: 'pyramus'
-          directory: 'pyramus-gui/dist'
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          commitHash: ${{ steps.push-changes.outputs.commit-hash }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          projectName: pyramus
+          directory: pyramus-gui/dist
+          branch: master
