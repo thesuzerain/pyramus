@@ -36,7 +36,7 @@ pub enum InputEvent {
     MouseDown { x: f32, y: f32 },
     MouseUp,
     MouseMove { delta_x: f32, delta_y: f32 },
-    // TODO: Some kind of drag event- may need to be more complex, see Graphite's FSM system
+    // TODO: Some kind of drag event- may need to be more complex, see Graphite's FSM
     // TODO: Keyboard events
 }
 
