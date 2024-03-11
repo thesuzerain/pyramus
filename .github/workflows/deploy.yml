@@ -38,7 +38,7 @@ jobs:
           NODE_ENV: production
         run: |
           cd pyramus-gui
-          mold -run npm run build
+          npm run build
 
       - name: Cloudflare Pages deployment
         uses: WalshyDev/cf-pages-await@v1
