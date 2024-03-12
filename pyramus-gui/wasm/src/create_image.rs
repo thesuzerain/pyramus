@@ -1,6 +1,6 @@
 use pyramus::{
     command::BackendCommand,
-    models::item::{ItemBuilder, StagedItemId},
+    models::blueprint::{ids::ItemId, prop_builder::PropItemBuilder},
 };
 use wasm_bindgen::prelude::*;
 
@@ -10,8 +10,8 @@ use crate::editor::command;
 pub fn upload_image(name: String, parent: u32, data: Vec<u8>) -> Result<(), JsError> {
     command([BackendCommand::CreateItem {
         name,
-        parent: StagedItemId(parent),
-        new_item: ItemBuilder::ImageFromBytes {
+        parent: ItemId(parent),
+        new_item: PropItemBuilder::ImageFromBytes {
             bytes: data,
             ext: "png".to_string(),
         },
@@ -23,8 +23,8 @@ pub fn upload_image(name: String, parent: u32, data: Vec<u8>) -> Result<(), JsEr
 pub fn upload_svg(name: String, parent: u32, svg: String) -> Result<(), JsError> {
     command([BackendCommand::CreateItem {
         name,
-        parent: StagedItemId(parent),
-        new_item: ItemBuilder::ImageFromSvg(svg),
+        parent: ItemId(parent),
+        new_item: PropItemBuilder::ImageFromSvg(svg),
     }])?;
     Ok(())
 }
@@ -33,8 +33,8 @@ pub fn upload_svg(name: String, parent: u32, svg: String) -> Result<(), JsError>
 pub fn upload_text(name: String, parent: u32, text: String) -> Result<(), JsError> {
     command([BackendCommand::CreateItem {
         name,
-        parent: StagedItemId(parent),
-        new_item: ItemBuilder::Text {
+        parent: ItemId(parent),
+        new_item: PropItemBuilder::Text {
             text,
             // TODO: make these configurable
             font_family: "Arial".to_string(),

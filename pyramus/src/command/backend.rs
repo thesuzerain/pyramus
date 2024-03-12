@@ -1,26 +1,26 @@
 use super::FrontendCommand;
 use crate::models::{
-    item::{ItemBuilder, RelativeTransform, StagedItemId},
-    stage::Stage,
+    blueprint::{ids::ItemId, prop_builder::PropItemBuilder, transform::RelativeTransform},
+    editor::stage::Stage,
 };
 
 pub enum BackendCommand {
     CreateItem {
         name: String,
-        parent: StagedItemId,
-        new_item: ItemBuilder,
+        parent: ItemId,
+        new_item: PropItemBuilder,
     },
 
     // Selection
-    SetSelection(Vec<StagedItemId>),
+    SetSelection(Vec<ItemId>),
 
     // TODO: Should this be EditTransform?
-    TranslateGroup(Vec<StagedItemId>, (f32, f32)),
+    TranslateGroup(Vec<ItemId>, (f32, f32)),
 
     // Item Editing
-    EditTransform(StagedItemId, RelativeTransform),
-    RenameItem(StagedItemId, String),
-    DeleteItem(StagedItemId),
+    EditTransform(ItemId, RelativeTransform),
+    RenameItem(ItemId, String),
+    DeleteItem(ItemId),
 }
 
 impl BackendCommand {

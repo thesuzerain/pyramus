@@ -3,6 +3,7 @@
 
 use std::collections::HashMap;
 
+use pyramus::models::blueprint::prop::PropItemType;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -47,9 +48,10 @@ pub enum FrontendItemType {
 
 // Don't use 'From' trait because we want to convert with a reference
 impl FrontendStage {
-    pub fn from(stage: &pyramus::models::stage::Stage) -> FrontendStage {
+    pub fn from(stage: &pyramus::models::editor::stage::Stage) -> FrontendStage {
         FrontendStage {
             items: stage
+                .base
                 .items
                 .iter()
                 .map(|(id, item)| (id.0, FrontendItem::from(item, stage)))
@@ -62,13 +64,13 @@ impl FrontendStage {
 // Don't use 'From' trait because we want to convert with a reference, and with the stage context
 impl FrontendItem {
     pub fn from(
-        item: &pyramus::models::item::StagedItem,
-        stage: &pyramus::models::stage::Stage,
+        item: &pyramus::models::blueprint::prop::PropItem,
+        stage: &pyramus::models::editor::stage::Stage,
     ) -> FrontendItem {
         FrontendItem {
             id: item.id.0,
             name: item.name.clone(),
-            is_root: item.id == stage.root,
+            is_root: item.id == stage.base.root,
             parent: item.parent.map(|id| id.0),
             children: item.children.iter().map(|id| id.0).collect(),
             item_type: FrontendItemType::from(&item.item),
@@ -81,16 +83,16 @@ impl FrontendItem {
 
 // Don't use 'From' trait because we want to convert with a reference
 impl FrontendItemType {
-    pub fn from(item_type: &pyramus::models::item::Item) -> FrontendItemType {
+    pub fn from(item_type: &PropItemType) -> FrontendItemType {
         match item_type {
-            pyramus::models::item::Item::Text(text) => FrontendItemType::Text {
+            PropItemType::Text(text) => FrontendItemType::Text {
                 text: text.text.clone(),
                 font_family: text.font_family.clone(),
                 font_size: text.font_size.get(),
                 color: text.color,
                 italic: text.italic,
             },
-            pyramus::models::item::Item::Image { .. } => FrontendItemType::Image,
+            PropItemType::Image { .. } => FrontendItemType::Image,
         }
     }
 }

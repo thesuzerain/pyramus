@@ -1,6 +1,6 @@
 use crate::{
     command::{BackendCommand, FrontendCommand},
-    models::stage::Stage,
+    models::editor::stage::Stage,
 };
 
 #[derive(Debug)]
