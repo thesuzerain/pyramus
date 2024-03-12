@@ -4,7 +4,7 @@ use crate::{
 };
 use pyramus::{
     command::BackendCommand,
-    models::blueprint::{ids::ItemId, transform::RelativeTransform},
+    models::templates::{ids::ItemId, transform::RelativeTransform},
 };
 use wasm_bindgen::prelude::*;
 

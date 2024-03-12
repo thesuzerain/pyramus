@@ -1,8 +1,6 @@
-use std::{collections::HashMap, rc::Rc, sync::Arc};
-
-use resvg::usvg::{self, NonZeroPositiveF32};
-
 use super::{ids::ItemId, transform::RelativeTransform};
+use resvg::usvg::{self, NonZeroPositiveF32};
+use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 #[derive(Debug)]
 pub struct Prop {

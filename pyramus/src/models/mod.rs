@@ -1,2 +1,2 @@
-pub mod blueprint;
 pub mod editor;
+pub mod templates;

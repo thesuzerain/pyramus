@@ -1,15 +1,11 @@
 use super::FrontendCommand;
 use crate::models::{
-    blueprint::{ids::ItemId, prop_builder::PropItemBuilder, transform::RelativeTransform},
-    editor::stage::Stage,
+    editor::stage::{Stage, Stageable},
+    templates::{ids::ItemId, prop_builder::PropItemBuilder, transform::RelativeTransform},
 };
 
 pub enum BackendCommand {
-    CreateItem {
-        name: String,
-        parent: ItemId,
-        new_item: PropItemBuilder,
-    },
+    CreateItem { new_item: PropItemBuilder },
 
     // Selection
     SetSelection(Vec<ItemId>),
@@ -26,13 +22,8 @@ pub enum BackendCommand {
 impl BackendCommand {
     pub fn process(self, stage: &mut Stage) -> crate::Result<Vec<FrontendCommand>> {
         let frontend_commands = match self {
-            Self::CreateItem {
-                name,
-                parent,
-                new_item,
-            } => {
-                let item = new_item.build()?;
-                let item_id = stage.add_child(name, Some(parent), item, None)?;
+            Self::CreateItem { new_item } => {
+                let item_id = stage.base.add_child(new_item)?;
                 stage.set_selection(vec![item_id]);
                 vec![FrontendCommand::UpdateStage]
             }
@@ -41,18 +32,18 @@ impl BackendCommand {
                 vec![FrontendCommand::UpdateStage]
             }
             Self::DeleteItem(item_id) => {
-                stage.remove_item(item_id)?;
+                stage.base.remove_item(item_id)?;
                 vec![FrontendCommand::UpdateStage]
             }
             Self::EditTransform(item_id, transform) => {
-                stage.edit_item_transform(item_id, |t| {
+                stage.base.edit_item_transform(item_id, |t| {
                     *t = transform;
                     Ok(())
                 })?;
                 vec![FrontendCommand::UpdateStage]
             }
             Self::RenameItem(item_id, name) => {
-                stage.edit_item(item_id, |item| {
+                stage.base.edit_item(item_id, |item| {
                     item.name = name;
                     Ok(())
                 })?;
@@ -60,7 +51,7 @@ impl BackendCommand {
             }
             Self::TranslateGroup(item_ids, (x, y)) => {
                 for item_id in item_ids {
-                    stage.edit_item_transform(item_id, |t| {
+                    stage.base.edit_item_transform(item_id, |t| {
                         t.position.0 += x;
                         t.position.1 += y;
                         Ok(())

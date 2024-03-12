@@ -2,11 +2,104 @@ use image::io::Reader as ImageReader;
 use resvg::usvg::{self, NonZeroPositiveF32};
 use std::{io::Cursor, rc::Rc, sync::Arc};
 
-use crate::models::blueprint::prop::{PropItemImage, PropItemText};
+use crate::{
+    models::{
+        editor::stage::StageItemBuilder,
+        templates::prop::{PropItemImage, PropItemText},
+    },
+    svg,
+};
 
-use super::prop::{Prop, PropItemImageData, PropItemType};
+use super::{
+    ids::ItemId,
+    prop::{PropItem, PropItemImageData, PropItemType},
+    transform::RelativeTransform,
+};
 
-pub enum PropItemBuilder {
+pub struct PropItemBuilder {
+    pub name: String,
+    pub item: PropItemTypeBuilder,
+    pub parent: Option<ItemId>,
+    pub transform: RelativeTransform,
+}
+
+impl PropItemBuilder {
+    pub fn build_text_basic(text: impl ToString) -> PropItemBuilder {
+        Self::build_text(text, "Arial".to_string(), 12.0, (0, 0, 0), false)
+    }
+
+    pub fn build_text(
+        text: impl ToString,
+        font_family: String,
+        font_size: f32,
+        color: (u8, u8, u8),
+        italic: bool,
+    ) -> PropItemBuilder {
+        PropItemBuilder {
+            name: "text".to_string(),
+            item: PropItemTypeBuilder::Text {
+                text: text.to_string(),
+                font_family,
+                font_size,
+                color,
+                italic,
+            },
+            parent: None,
+            transform: Default::default(),
+        }
+    }
+
+    pub fn build_image_from_svg(svg: String) -> PropItemBuilder {
+        PropItemBuilder {
+            name: "image".to_string(),
+            item: PropItemTypeBuilder::ImageFromSvg(svg),
+            parent: None,
+            transform: Default::default(),
+        }
+    }
+
+    pub fn build_image_from_bytes(bytes: Vec<u8>, ext: impl ToString) -> PropItemBuilder {
+        PropItemBuilder {
+            name: "image".to_string(),
+            item: PropItemTypeBuilder::ImageFromBytes {
+                bytes,
+                ext: ext.to_string(),
+            },
+            parent: None,
+            transform: Default::default(),
+        }
+    }
+
+    // Creates a simple SVG tree with a rectangle
+    // TODO: This is for testing purposes only
+    // Alpha is a value between 0.0 and 1.0
+    pub fn build_image_from_rect(
+        w: u32,
+        h: u32,
+        color: &str,
+        stroke: Option<u32>,
+        alpha: f32,
+    ) -> PropItemBuilder {
+        PropItemBuilder::build_image_from_svg(svg::build_svg_rect(w, h, color, stroke, alpha))
+    }
+
+    pub fn parent(mut self, parent: ItemId) -> Self {
+        self.parent = Some(parent);
+        self
+    }
+
+    pub fn transform(mut self, transform: RelativeTransform) -> Self {
+        self.transform = transform;
+        self
+    }
+
+    pub fn name(mut self, name: impl ToString) -> Self {
+        self.name = name.to_string();
+        self
+    }
+}
+
+pub enum PropItemTypeBuilder {
     Text {
         text: String,
         font_family: String,
@@ -21,21 +114,16 @@ pub enum PropItemBuilder {
     },
 }
 
-impl PropItemBuilder {
-    pub fn build_prop(self) -> crate::Result<Prop> {
-        // TODO: Implement direct creation of Prop from PropItemBuilder
-        todo!()
-    }
-
+impl PropItemTypeBuilder {
     pub fn build(self) -> crate::Result<PropItemType> {
-        match self {
-            PropItemBuilder::Text {
+        Ok(match self {
+            PropItemTypeBuilder::Text {
                 text,
                 font_family,
                 font_size,
                 color,
                 italic,
-            } => Ok(PropItemType::Text(PropItemText {
+            } => PropItemType::Text(PropItemText {
                 text,
                 font_family,
                 font_size: NonZeroPositiveF32::new(font_size).ok_or_else(|| {
@@ -43,18 +131,40 @@ impl PropItemBuilder {
                 })?,
                 color,
                 italic,
-            })),
-            PropItemBuilder::ImageFromSvg(svg) => {
+            }),
+            PropItemTypeBuilder::ImageFromSvg(svg) => {
                 let image = PropItemImage::from_svg_string(&svg)?;
-                Ok(PropItemType::Image(image))
+                PropItemType::Image(image)
             }
-            PropItemBuilder::ImageFromBytes { bytes, ext } => {
+            PropItemTypeBuilder::ImageFromBytes { bytes, ext } => {
                 let image = PropItemImage::from_bytes(bytes, &ext)?.ok_or_else(|| {
                     crate::PyramusError::OtherError("Could not parse image".to_string())
                 })?;
-                Ok(PropItemType::Image(image))
+                PropItemType::Image(image)
             }
-        }
+        })
+    }
+}
+
+impl StageItemBuilder for PropItemBuilder {
+    type Item = PropItem;
+
+    fn build(self) -> crate::Result<Self::Item> {
+        let PropItemBuilder {
+            name,
+            item,
+            parent,
+            transform,
+        } = self;
+        let item = item.build()?;
+        Ok(PropItem {
+            id: ItemId::new(),
+            name: name.clone(),
+            item,
+            parent,
+            transform,
+            children: vec![],
+        })
     }
 }
 
@@ -109,32 +219,6 @@ impl PropItemImage {
             viewport_width: tree_width,
             viewport_height: tree_height,
         })
-    }
-
-    // Creates a simple SVG tree with a rectangle
-    // TODO: This is for testing purposes only
-    // Alpha is a value between 0.0 and 1.0
-    pub fn from_rect(
-        w: u32,
-        h: u32,
-        color: &str,
-        stroke: Option<u32>,
-        alpha: f32,
-    ) -> Result<PropItemImage, usvg::Error> {
-        let stroke = match stroke {
-            Some(stroke) => format!(
-                r#"stroke="{color}" stroke-width="{stroke}" fill="{color}" fill-opacity="{alpha}"#,
-            ),
-            None => format!(r#"fill="{color}" fill-opacity="{alpha}"#),
-        };
-
-        Self::from_svg_string(&format!(
-            r#"
-            <svg width="{w}" height="{h}" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0" y="0" width="{w}" height="{h}" {stroke}" />
-            </svg>
-            "#
-        ))
     }
 }
 

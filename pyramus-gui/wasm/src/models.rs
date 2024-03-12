@@ -3,19 +3,19 @@
 
 use std::collections::HashMap;
 
-use pyramus::models::blueprint::prop::PropItemType;
+use pyramus::models::templates::prop::PropItemType;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-#[derive(Tsify, Serialize, Deserialize)]
+#[derive(Debug, Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct FrontendStage {
     pub items: HashMap<u32, FrontendItem>,
     pub selected: Vec<u32>,
 }
 
-#[derive(Tsify, Serialize, Deserialize)]
+#[derive(Debug, Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct FrontendItem {
     pub id: u32,
@@ -34,7 +34,7 @@ pub struct FrontendItem {
     pub rotation: f32, // In degrees
 }
 
-#[derive(Tsify, Serialize, Deserialize)]
+#[derive(Debug, Tsify, Serialize, Deserialize)]
 pub enum FrontendItemType {
     Text {
         text: String,
@@ -64,7 +64,7 @@ impl FrontendStage {
 // Don't use 'From' trait because we want to convert with a reference, and with the stage context
 impl FrontendItem {
     pub fn from(
-        item: &pyramus::models::blueprint::prop::PropItem,
+        item: &pyramus::models::templates::prop::PropItem,
         stage: &pyramus::models::editor::stage::Stage,
     ) -> FrontendItem {
         FrontendItem {

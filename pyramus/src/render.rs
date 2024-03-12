@@ -1,9 +1,9 @@
 use crate::{
     models::{
-        blueprint::prop::{PropItem, PropItemImage, PropItemType},
         editor::stage::Stage,
+        templates::prop::{PropItem, PropItemImage, PropItemType},
     },
-    PyramusError,
+    svg, PyramusError,
 };
 use glam::Affine2;
 use svgtypes::parse_font_families;
@@ -117,13 +117,13 @@ impl PropItem {
                 aspect: usvg::AspectRatio::default(),
             },
             rendering_mode: usvg::ImageRendering::OptimizeSpeed,
-            kind: PropItemImage::from_rect(
+            kind: PropItemImage::from_svg_string(&svg::build_svg_rect(
                 (x1 - x0) as u32,
                 (y1 - y0) as u32,
                 "blue",
                 Some(outline_size as u32),
                 0.5,
-            )?
+            ))?
             .data
             .into(),
         }));

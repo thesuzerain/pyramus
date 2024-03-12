@@ -8,6 +8,7 @@ pub mod input;
 pub mod logging;
 pub mod models;
 pub mod render;
+pub mod svg;
 
 pub type Result<T> = std::result::Result<T, PyramusError>;
 

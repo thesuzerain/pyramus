@@ -1,4 +1,4 @@
-use crate::models::blueprint::prop::PropItem;
+use crate::models::templates::prop::PropItem;
 
 use super::stage::Stage;
 use glam::Vec2;
@@ -25,7 +25,7 @@ impl PropItem {
                 .items
                 .get(&parent_id)
                 .expect("Parent item not found");
-            transform * parent_item.get_screen_transform(stage)
+            parent_item.get_screen_transform(stage) * transform
         } else {
             transform
         }
