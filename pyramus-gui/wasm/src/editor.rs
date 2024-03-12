@@ -1,4 +1,8 @@
-use pyramus::{command::FrontendCommand, PyramusError};
+use pyramus::{
+    command::FrontendCommand,
+    models::{editor::staged_template::StagedTemplate, templates::prop::Prop},
+    PyramusError,
+};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use wasm_bindgen::{JsError, JsValue};
 
@@ -7,13 +11,14 @@ type CallbacksMap = HashMap<String, js_sys::Function>;
 thread_local! {
     // TODO: Should this be Rc, OnceCell, thread_local!, etc?
     // TODO: Does this even need to be global?
-    pub(crate) static RUNTIME: Rc<RefCell<Option<EditorRuntime>>> = Rc::new(RefCell::new(None));
+    // TODO: This should be generic- on heap?
+    pub(crate) static RUNTIME: Rc<RefCell<Option<EditorRuntime<Prop>>>> = Rc::new(RefCell::new(None));
     pub(crate) static CALLBACKS: Rc<RefCell<CallbacksMap>> = Rc::new(RefCell::new(HashMap::new()));
 }
 
 // Resolve a BackendCommand, and dispatch any resulting FrontendCommands
 pub fn command(
-    commands: impl IntoIterator<Item = pyramus::command::BackendCommand>,
+    commands: impl IntoIterator<Item = pyramus::command::BackendCommand<Prop>>,
 ) -> Result<(), JsError> {
     let frontend_response = RUNTIME.with(|runtime| {
         let mut runtime = runtime.borrow_mut();
@@ -78,18 +83,18 @@ pub fn dispatch_frontend_command(
     Ok(())
 }
 
-pub struct EditorRuntime {
-    pub stage: pyramus::models::editor::stage::Stage,
+pub struct EditorRuntime<T: StagedTemplate> {
+    pub stage: pyramus::models::editor::stage::Stage<T>,
 }
 
-impl Default for EditorRuntime {
+impl Default for EditorRuntime<Prop> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl EditorRuntime {
-    pub fn new() -> EditorRuntime {
+impl EditorRuntime<Prop> {
+    pub fn new() -> EditorRuntime<Prop> {
         EditorRuntime {
             // TODO: Load from file, etc
             // TODO: When no longer a prototype, this should not need to be unwrapped
@@ -98,10 +103,12 @@ impl EditorRuntime {
                 .unwrap(),
         }
     }
+}
 
+impl<T: StagedTemplate> EditorRuntime<T> {
     pub fn command(
         &mut self,
-        commands: impl IntoIterator<Item = pyramus::command::BackendCommand>,
+        commands: impl IntoIterator<Item = pyramus::command::BackendCommand<T>>,
     ) -> Result<Vec<FrontendCommand>, JsError> {
         let mut frontend_commands = Vec::new();
         for command in commands {

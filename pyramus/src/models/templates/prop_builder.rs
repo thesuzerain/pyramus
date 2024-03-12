@@ -2,17 +2,11 @@ use image::io::Reader as ImageReader;
 use resvg::usvg::{self, NonZeroPositiveF32};
 use std::{io::Cursor, rc::Rc, sync::Arc};
 
-use crate::{
-    models::{
-        editor::stage::StageItemBuilder,
-        templates::prop::{PropItemImage, PropItemText},
-    },
-    svg,
-};
+use crate::{models::editor::stage::StageItemBuilder, svg};
 
 use super::{
     ids::ItemId,
-    prop::{PropItem, PropItemImageData, PropItemType},
+    prop_item::{PropItem, PropItemImage, PropItemImageData, PropItemText, PropItemType},
     transform::RelativeTransform,
 };
 

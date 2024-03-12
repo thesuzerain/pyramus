@@ -1,6 +1,6 @@
 use crate::{
     command::{BackendCommand, FrontendCommand},
-    models::editor::stage::Stage,
+    models::editor::{stage::Stage, staged_template::StagedTemplate},
 };
 
 #[derive(Debug)]
@@ -41,7 +41,10 @@ pub enum InputEvent {
 }
 
 impl InputEvent {
-    pub fn process(self, stage: &mut Stage) -> crate::Result<Vec<FrontendCommand>> {
+    pub fn process<T: StagedTemplate>(
+        self,
+        stage: &mut Stage<T>,
+    ) -> crate::Result<Vec<FrontendCommand>> {
         match self {
             Self::MouseDown { x, y } => {
                 stage.mouse_state = MouseState::MouseDown(x, y);
@@ -70,12 +73,16 @@ impl InputEvent {
     }
 }
 
-fn handle_selection(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<FrontendCommand>> {
+fn handle_selection<T: StagedTemplate>(
+    stage: &mut Stage<T>,
+    x: f32,
+    y: f32,
+) -> crate::Result<Vec<FrontendCommand>> {
     // Find item at x, y
     let item_id = stage.get_front_item_at(x, y, false);
 
     if let Some(item_id) = item_id {
-        if stage.get_selections().iter().any(|s| s.id == item_id) {
+        if stage.selection.iter().any(|s| *s == item_id) {
             // If we click an item, and it's already selected, do nothing (perhaps it will be dragged, etc)
             Ok(vec![])
         } else {
@@ -92,7 +99,11 @@ fn handle_selection(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<Fron
     }
 }
 
-fn handle_click(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<FrontendCommand>> {
+fn handle_click<T: StagedTemplate>(
+    stage: &mut Stage<T>,
+    x: f32,
+    y: f32,
+) -> crate::Result<Vec<FrontendCommand>> {
     let item_id = stage.get_front_item_at(x, y, false);
 
     // If we fully get through a click, and it's on an item, select it
@@ -104,14 +115,10 @@ fn handle_click(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<Frontend
     }
 }
 
-fn handle_drag(
-    stage: &mut Stage,
+fn handle_drag<T: StagedTemplate>(
+    stage: &mut Stage<T>,
     delta_x: f32,
     delta_y: f32,
 ) -> crate::Result<Vec<FrontendCommand>> {
-    BackendCommand::TranslateGroup(
-        stage.get_selections().iter().map(|s| s.id).collect(),
-        (delta_x, delta_y),
-    )
-    .process(stage)
+    BackendCommand::TranslateGroup(stage.selection.clone(), (delta_x, delta_y)).process(stage)
 }

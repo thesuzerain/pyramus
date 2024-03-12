@@ -1,11 +1,12 @@
 use super::FrontendCommand;
+use crate::models::editor::item::StageItem;
 use crate::models::{
-    editor::stage::{Stage, Stageable},
-    templates::{ids::ItemId, prop_builder::PropItemBuilder, transform::RelativeTransform},
+    editor::{stage::Stage, staged_template::StagedTemplate},
+    templates::{ids::ItemId, transform::RelativeTransform},
 };
 
-pub enum BackendCommand {
-    CreateItem { new_item: PropItemBuilder },
+pub enum BackendCommand<T: StagedTemplate> {
+    CreateItem { new_item: T::ItemBuilder },
 
     // Selection
     SetSelection(Vec<ItemId>),
@@ -19,8 +20,8 @@ pub enum BackendCommand {
     DeleteItem(ItemId),
 }
 
-impl BackendCommand {
-    pub fn process(self, stage: &mut Stage) -> crate::Result<Vec<FrontendCommand>> {
+impl<T: StagedTemplate> BackendCommand<T> {
+    pub fn process(self, stage: &mut Stage<T>) -> crate::Result<Vec<FrontendCommand>> {
         let frontend_commands = match self {
             Self::CreateItem { new_item } => {
                 let item_id = stage.base.add_child(new_item)?;
@@ -44,7 +45,7 @@ impl BackendCommand {
             }
             Self::RenameItem(item_id, name) => {
                 stage.base.edit_item(item_id, |item| {
-                    item.name = name;
+                    item.rename(name);
                     Ok(())
                 })?;
                 vec![FrontendCommand::UpdateStage]

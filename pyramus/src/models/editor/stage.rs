@@ -1,159 +1,36 @@
+use super::{item::StageItem, staged_template::StagedTemplate};
 use crate::{
     input::MouseState,
     models::templates::{
-        ids::ItemId,
-        prop::{Prop, PropItem},
-        prop_builder::PropItemBuilder,
-        transform::RelativeTransform,
+        ids::ItemId, prop::Prop, prop_builder::PropItemBuilder, transform::RelativeTransform,
     },
 };
-
 use std::collections::HashMap;
 
+/// The stage is the main area where items are placed and manipulated.
+/// It is the main area of interaction for the user.
+/// It is a container for any template:
+/// - A prop (a collection of prop items)
+/// - A blueprint (a collection of props)
 #[derive(Debug)]
-pub struct Stage {
-    pub base: Prop, // TODO: Should be able to be a blueprint or a prop. Stage<T> where T is 'stageable'
+pub struct Stage<T: StagedTemplate> {
+    pub base: T, // TODO: Should be able to be a blueprint or a prop. Stage<T> where T is 'stageable'
     pub selection: Vec<ItemId>,
 
     // TODO: Should be exported to some other 'state'-type mechansms
     pub mouse_state: MouseState,
 }
 
-pub trait Stageable {
-    // 'Child' should impl StageChild
-    type Item: StageItem;
-    type ItemBuilder: StageItemBuilder;
-
-    fn add_child(&mut self, item_builder: Self::ItemBuilder) -> crate::Result<ItemId>;
-
-    fn edit_item(
-        &mut self,
-        id: ItemId,
-        f: impl FnOnce(&mut Self::Item) -> crate::Result<()>,
-    ) -> crate::Result<()>;
-
-    fn edit_item_transform(
-        &mut self,
-        id: ItemId,
-        f: impl FnOnce(&mut RelativeTransform) -> crate::Result<()>,
-    ) -> crate::Result<()>;
-
-    fn remove_item(&mut self, id: ItemId) -> crate::Result<()>;
-}
-
-pub trait StageItem {}
 pub trait StageItemBuilder {
     type Item: StageItem;
 
     fn build(self) -> crate::Result<Self::Item>;
 }
 
-impl Stageable for Prop {
-    type Item = PropItem;
-    type ItemBuilder = PropItemBuilder;
-
-    // TODO: This pattern could be improved (taking in an Rc<RwLock> parent, rather than a reference to self)
-    fn add_child(&mut self, item_builder: Self::ItemBuilder) -> crate::Result<ItemId> {
-        // TODO: Revisit this function after blueprint refactor- move to prop?
-        let parent = item_builder.parent.unwrap_or(self.root);
-
-        // Check parent exists and add child
-        let parent = self
-            .items
-            .get_mut(&parent)
-            .ok_or_else(|| crate::PyramusError::OtherError("Parent not found".to_string()))?;
-
-        // Build and insert item
-        let item = item_builder.build()?;
-        let id = item.id;
-
-        // Insert parent and child
-        parent.children.push(id);
-        self.items.insert(id, item);
-
-        Ok(id)
-    }
-
-    fn edit_item(
-        &mut self,
-        id: ItemId,
-        f: impl FnOnce(&mut Self::Item) -> crate::Result<()>,
-    ) -> crate::Result<()> {
-        // TODO: Revisit this function after blueprint refactor- move to prop?
-        if let Some(item) = self.items.get_mut(&id) {
-            f(item)
-        } else {
-            Err(crate::PyramusError::OtherError(
-                "Item not found".to_string(),
-            ))
-        }
-    }
-
-    fn edit_item_transform(
-        &mut self,
-        id: ItemId,
-        f: impl FnOnce(&mut RelativeTransform) -> crate::Result<()>,
-    ) -> crate::Result<()> {
-        // TODO: Revisit this function after blueprint refactor- move to prop?
-        // Cannot edit the root item
-        if id == self.root {
-            return Err(crate::PyramusError::OtherError(
-                "Cannot edit the root item".to_string(),
-            ));
-        }
-
-        if let Some(item) = self.items.get_mut(&id) {
-            f(&mut item.transform)
-        } else {
-            Err(crate::PyramusError::OtherError(
-                "Item not found".to_string(),
-            ))
-        }
-    }
-
-    fn remove_item(&mut self, id: ItemId) -> crate::Result<()> {
-        // TODO: Revisit this function after blueprint refactor- move to prop?
-        // Cannot remove the root item
-        if id == self.root {
-            return Err(crate::PyramusError::OtherError(
-                "Cannot remove the root item".to_string(),
-            ));
-        }
-
-        let root = self.root;
-        let parent = self.items.get(&id).and_then(|item| item.parent);
-        let children = self
-            .items
-            .get(&id)
-            .map(|item| item.children.clone())
-            .unwrap_or_default();
-
-        if let Some(parent) = parent.and_then(|parent| self.items.get_mut(&parent)) {
-            parent.children.retain(|child| *child != id);
-        }
-
-        // Children should be kept and re-parented to the root
-        // TODO: make this optional
-        // If we reparent to the root, we should also calculate the new relative transform to keep the same position
-        for child in children {
-            let Some(child) = self.items.get_mut(&child) else {
-                continue;
-            };
-            child.parent = Some(root);
-        }
-        self.items.remove(&id);
-
-        Ok(())
-    }
-}
-
-impl StageItem for PropItem {}
-
-// TODO: Move these functions to separate modules/files
-impl Stage {
+impl Stage<Prop> {
     // TODO: Background color should be a color type (consistency with other parts of the codebase)
     // TODO: Background color should be optional, or a pattern (like how Photoshop does transparency)
-    pub fn build(width: u32, height: u32) -> crate::Result<Stage> {
+    pub fn build(width: u32, height: u32) -> crate::Result<Stage<Prop>> {
         // TODO: Revisit this function after blueprint refactor
         let root = PropItemBuilder::build_image_from_rect(width, height, "red", None, 1.0)
             .name("root")
@@ -176,16 +53,19 @@ impl Stage {
             mouse_state: MouseState::Idle,
         })
     }
+}
 
+// TODO: Move these functions to separate modules/files
+impl<T: StagedTemplate> Stage<T> {
     pub fn set_selection(&mut self, selection: Vec<ItemId>) {
         self.selection = selection;
     }
 
-    pub fn get_selections(&self) -> Vec<&PropItem> {
+    pub fn get_selections(&self) -> Vec<&T::Item> {
         // TODO: Revisit this function after blueprint refactor- move to prop?
         self.selection
             .iter()
-            .filter_map(|id| self.base.items.get(id))
+            .filter_map(|id| self.base.get_item(*id))
             .collect()
     }
 
@@ -196,12 +76,12 @@ impl Stage {
         let render_ordered = self.get_render_order();
         crate::log!("Render ordered: {:?}", render_ordered);
         for item_id in render_ordered.into_iter().rev() {
-            if !include_root && item_id == self.base.root {
+            if !include_root && item_id == self.base.get_root() {
                 continue;
             }
 
-            let item = self.base.items.get(&item_id).unwrap(); // TODO: unwrap
-            if item.contains_point(x, y, self) {
+            let item: &T::Item = self.base.get_item(item_id).unwrap(); // TODO: unwrap
+            if item.contains_point(x, y, self as &Stage<T>) {
                 return Some(item_id);
             }
         }
@@ -215,22 +95,23 @@ impl Stage {
         // TODO: Caching will help this
         let mut render_order = Vec::new();
 
-        fn get_render_order_recursive(stage: &Stage, item_id: ItemId) -> Vec<ItemId> {
-            let item = stage.base.items.get(&item_id).unwrap();
-            let mut render_order = vec![item_id];
-            for child in &item.children {
-                render_order.extend(get_render_order_recursive(stage, *child));
-            }
-            render_order
-        }
-        render_order.extend(get_render_order_recursive(self, self.base.root));
+        render_order.extend(Self::get_render_order_recursive(self, self.base.get_root()));
 
+        render_order
+    }
+
+    fn get_render_order_recursive(stage: &Stage<T>, item_id: ItemId) -> Vec<ItemId> {
+        let item = stage.base.get_item(item_id).unwrap(); // TODO: Handle this unwrap properly
+        let mut render_order = vec![item_id];
+        for child in item.get_children() {
+            render_order.extend(Self::get_render_order_recursive(stage, *child));
+        }
         render_order
     }
 }
 
 // TODO: Remove, this is just for testing of WASM rendering before other features are implemented
-pub fn example_stage() -> crate::Result<Stage> {
+pub fn example_stage() -> crate::Result<Stage<Prop>> {
     let mut stage = Stage::build(800, 600)?;
 
     // Add a simple translucent rectangle as the background

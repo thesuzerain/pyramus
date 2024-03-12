@@ -3,7 +3,13 @@
 
 use std::collections::HashMap;
 
-use pyramus::models::templates::prop::PropItemType;
+use pyramus::models::{
+    editor::staged_template::StagedTemplate,
+    templates::{
+        prop::Prop,
+        prop_item::{PropItem, PropItemType},
+    },
+};
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -48,11 +54,11 @@ pub enum FrontendItemType {
 
 // Don't use 'From' trait because we want to convert with a reference
 impl FrontendStage {
-    pub fn from(stage: &pyramus::models::editor::stage::Stage) -> FrontendStage {
+    pub fn from(stage: &pyramus::models::editor::stage::Stage<Prop>) -> FrontendStage {
         FrontendStage {
             items: stage
                 .base
-                .items
+                .get_items()
                 .iter()
                 .map(|(id, item)| (id.0, FrontendItem::from(item, stage)))
                 .collect::<HashMap<_, _>>(),
@@ -64,13 +70,13 @@ impl FrontendStage {
 // Don't use 'From' trait because we want to convert with a reference, and with the stage context
 impl FrontendItem {
     pub fn from(
-        item: &pyramus::models::templates::prop::PropItem,
-        stage: &pyramus::models::editor::stage::Stage,
+        item: &PropItem,
+        stage: &pyramus::models::editor::stage::Stage<impl StagedTemplate>,
     ) -> FrontendItem {
         FrontendItem {
             id: item.id.0,
             name: item.name.clone(),
-            is_root: item.id == stage.base.root,
+            is_root: item.id == stage.base.get_root(),
             parent: item.parent.map(|id| id.0),
             children: item.children.iter().map(|id| id.0).collect(),
             item_type: FrontendItemType::from(&item.item),
