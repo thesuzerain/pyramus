@@ -7,6 +7,8 @@ use crate::models::templates::{
 
 use super::{item::StageItem, stage::StageItemBuilder};
 
+// TODO: We might want to change this trait so that instead of having to manually
+// handle each child/part/edit, we have a struct that represents all these shared fields.
 pub trait StagedTemplate {
     // Item is a StagedItem, and Item::Template must refer back to this trait
     type Item: StageItem<Template = Self>;
