@@ -1,3 +1,4 @@
+use new_editor::{CALLBACKS, RUNTIME};
 use wasm_bindgen::prelude::*;
 
 pub mod create_image;
@@ -6,18 +7,19 @@ pub mod image;
 pub mod input;
 pub mod item;
 pub mod models;
+pub mod new_editor;
 pub mod render; // TODO: rename
 
 #[wasm_bindgen(start)]
 pub fn init_app() {
-    editor::RUNTIME.with(|runtime| {
-        *runtime.borrow_mut() = Some(editor::EditorRuntime::new());
+    RUNTIME.with(|runtime| {
+        *runtime.borrow_mut() = Some(new_editor::Runtime::new());
     });
 }
 
 #[wasm_bindgen(js_name = subscribeFrontendCommand)]
 pub fn subscribe(event: String, callback: js_sys::Function) {
-    editor::CALLBACKS.with(|callbacks| {
+    CALLBACKS.with(|callbacks| {
         let mut callbacks = callbacks.borrow_mut();
         callbacks.insert(event, callback);
     });

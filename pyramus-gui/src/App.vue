@@ -47,8 +47,15 @@ document.querySelector('body')?.addEventListener('auxclick', function (e) {
             <PlusIcon />
           </RouterLink>
           <RouterLink
-            v-tooltip="'Editor SVG'"
-            to="/editor/svg"
+            v-tooltip="'Prop Editor'"
+            to="/editor/prop"
+            class="btn icon-only collapsed-button"
+          >
+            <PlusIcon />
+          </RouterLink>
+          <RouterLink
+            v-tooltip="'Blueprint Editor'"
+            to="/editor/blueprint"
             class="btn icon-only collapsed-button"
           >
             <PlusIcon />

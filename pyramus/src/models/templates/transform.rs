@@ -1,5 +1,7 @@
+use js_sys::Math::random;
+
 // TODO: Is this still needed now that we have Affine2?
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RelativeTransform {
     pub position: (f32, f32),
     pub scale: (f32, f32),
@@ -18,6 +20,17 @@ impl Default for RelativeTransform {
 
 // TODO: From?
 impl RelativeTransform {
+    // TODO: Remove, this is just to generate random transforms for testing
+    pub fn build_random(variance: u32) -> RelativeTransform {
+        let dx = random() as f32 * variance as f32;
+        let dy = random() as f32 * variance as f32;
+        RelativeTransform {
+            position: (dx, dy),
+            scale: (random() as f32 * 2.0, random() as f32 * 2.0),
+            rotation: random() as f32 * 360.0,
+        }
+    }
+
     pub fn to_glam_affine(&self) -> glam::Affine2 {
         let (x, y) = self.position;
         let (sx, sy) = self.scale;

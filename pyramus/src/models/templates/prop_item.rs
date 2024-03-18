@@ -4,18 +4,33 @@ use resvg::usvg::{self, NonZeroPositiveF32};
 
 use super::{ids::ItemId, transform::RelativeTransform};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)] // TODO: remove clone
 pub struct PropItem {
     pub id: ItemId,
     pub name: String,
     pub item: PropItemType,
-    pub parent: Option<ItemId>,
-    pub children: Vec<ItemId>, // If None, then it's a root item
 
-    pub transform: RelativeTransform,
+    // Stageable objects (TODO: Move to a separate struct?)
+    // Within a blueprint, if applicable, or parent
+    pub parent: Option<ItemId>,
+    pub children: Vec<ItemId>,        // If None, then it's a root item
+    pub transform: RelativeTransform, // Within a prop (or parent)
 }
 
-#[derive(Debug)]
+impl PropItem {
+    // x0, y0, x1, y1
+    pub fn get_local_bounds(&self) -> (f32, f32, f32, f32) {
+        self.item.get_local_bounds()
+    }
+
+    /// Returns the size of the item
+    pub fn get_size(&self) -> (u32, u32) {
+        let (x0, y0, x1, y1) = self.get_local_bounds();
+        ((x1 - x0) as u32, (y1 - y0) as u32)
+    }
+}
+
+#[derive(Debug, Clone)] // TODO: remove clone
 pub enum PropItemType {
     Image(PropItemImage),
     Text(PropItemText),
@@ -43,7 +58,7 @@ impl PropItemType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)] // TODO: remove clone
 pub struct PropItemText {
     pub text: String,
     pub font_family: String,
@@ -52,7 +67,7 @@ pub struct PropItemText {
     pub italic: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)] // TODO: remove clone
 pub struct PropItemImage {
     pub data: PropItemImageData,
     pub viewport_width: f32,

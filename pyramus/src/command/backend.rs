@@ -1,12 +1,14 @@
 use super::FrontendCommand;
-use crate::models::editor::item::StageItem;
+
 use crate::models::{
-    editor::{stage::Stage, staged_template::StagedTemplate},
-    templates::{ids::ItemId, transform::RelativeTransform},
+    editor::stage::Stage,
+    templates::{builder::ItemBuilder, ids::ItemId, transform::RelativeTransform},
 };
 
-pub enum BackendCommand<T: StagedTemplate> {
-    CreateItem { new_item: T::ItemBuilder },
+pub enum BackendCommand {
+    // TODO: Is there a way we can fuse these without giving BackendCommand a generic?
+    // Adding the generic causes problems with the WASM layer holding a dyn Stage
+    CreateItem { new_item: ItemBuilder },
 
     // Selection
     SetSelection(Vec<ItemId>),
@@ -20,39 +22,43 @@ pub enum BackendCommand<T: StagedTemplate> {
     DeleteItem(ItemId),
 }
 
-impl<T: StagedTemplate> BackendCommand<T> {
-    pub fn process(self, stage: &mut Stage<T>) -> crate::Result<Vec<FrontendCommand>> {
-        let frontend_commands = match self {
-            Self::CreateItem { new_item } => {
-                let item_id = stage.base.add_child(new_item)?;
-                stage.set_selection(vec![item_id]);
+impl Stage {
+    pub fn process_command(
+        &mut self,
+        command: BackendCommand,
+    ) -> crate::Result<Vec<FrontendCommand>> {
+        let frontend_commands = match command {
+            // TODO: Combine these? Only allow one?
+            BackendCommand::CreateItem { new_item } => {
+                let item_id = self.base.add_child(new_item)?;
+                self.set_selection(vec![item_id]);
                 vec![FrontendCommand::UpdateStage]
             }
-            Self::SetSelection(selection) => {
-                stage.set_selection(selection);
+            BackendCommand::SetSelection(selection) => {
+                self.set_selection(selection);
                 vec![FrontendCommand::UpdateStage]
             }
-            Self::DeleteItem(item_id) => {
-                stage.base.remove_item(item_id)?;
+            BackendCommand::DeleteItem(item_id) => {
+                self.base.remove_item(item_id)?;
                 vec![FrontendCommand::UpdateStage]
             }
-            Self::EditTransform(item_id, transform) => {
-                stage.base.edit_item_transform(item_id, |t| {
+            BackendCommand::EditTransform(item_id, transform) => {
+                self.base.edit_item_transform(item_id, |t| {
                     *t = transform;
                     Ok(())
                 })?;
                 vec![FrontendCommand::UpdateStage]
             }
-            Self::RenameItem(item_id, name) => {
-                stage.base.edit_item(item_id, |item| {
+            BackendCommand::RenameItem(item_id, name) => {
+                self.base.edit_item(item_id, |item| {
                     item.rename(name);
                     Ok(())
                 })?;
                 vec![FrontendCommand::UpdateStage]
             }
-            Self::TranslateGroup(item_ids, (x, y)) => {
+            BackendCommand::TranslateGroup(item_ids, (x, y)) => {
                 for item_id in item_ids {
-                    stage.base.edit_item_transform(item_id, |t| {
+                    self.base.edit_item_transform(item_id, |t| {
                         t.position.0 += x;
                         t.position.1 += y;
                         Ok(())

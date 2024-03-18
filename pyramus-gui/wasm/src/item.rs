@@ -1,6 +1,6 @@
 use crate::{
-    editor::{self, command},
     models::FrontendStage,
+    new_editor::{self, command},
 };
 use pyramus::{
     command::BackendCommand,
@@ -13,13 +13,13 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen(js_name = removeObject)]
 // TODO: should we have a way this can directly return an error?
 pub fn remove_object(item_id: u32) -> Result<(), JsError> {
-    command([BackendCommand::DeleteItem(ItemId(item_id))])?;
+    command(vec![BackendCommand::DeleteItem(ItemId(item_id))])?;
     Ok(())
 }
 
 #[wasm_bindgen(js_name = selectObjects)]
 pub fn select_objects(item_ids: Vec<u32>) -> Result<(), JsError> {
-    command([BackendCommand::SetSelection(
+    command(vec![BackendCommand::SetSelection(
         item_ids.into_iter().map(ItemId).collect(),
     )])?;
     Ok(())
@@ -27,7 +27,7 @@ pub fn select_objects(item_ids: Vec<u32>) -> Result<(), JsError> {
 
 #[wasm_bindgen(js_name = renameObject)]
 pub fn rename_object(item_id: u32, name: String) -> Result<(), JsError> {
-    command([BackendCommand::RenameItem(ItemId(item_id), name)])?;
+    command(vec![BackendCommand::RenameItem(ItemId(item_id), name)])?;
     Ok(())
 }
 
@@ -41,7 +41,7 @@ pub fn edit_transform(
     scale_y: f32,
 ) -> Result<(), JsError> {
     // TODO: This might make more sense as 3 separate functions
-    command([BackendCommand::EditTransform(
+    command(vec![BackendCommand::EditTransform(
         ItemId(item_id),
         RelativeTransform {
             scale: (scale_x, scale_y),
@@ -54,11 +54,11 @@ pub fn edit_transform(
 
 #[wasm_bindgen(js_name = getStage)]
 pub fn get_items() -> Result<FrontendStage, JsError> {
-    editor::RUNTIME.with(|runtime| {
+    new_editor::RUNTIME.with(|runtime| {
         let runtime = runtime.borrow();
         Ok(runtime
             .as_ref()
-            .map(|runtime| FrontendStage::from(&runtime.stage))
+            .map(|runtime| runtime.stage.to_frontend_stage())
             .ok_or_else(|| pyramus::PyramusError::NoRuntimeFound)?)
     })
 }

@@ -1,6 +1,6 @@
 use crate::{
     models::{
-        editor::{item::StageItem, stage::Stage, staged_template::StagedTemplate},
+        editor::{item::StageItem, stage::Stage},
         templates::prop_item::{PropItem, PropItemType},
     },
     PyramusError,
@@ -10,7 +10,7 @@ use svgtypes::parse_font_families;
 use resvg::usvg::{self, Font, FontStyle, TextSpan, Transform, XmlOptions};
 use usvg::fontdb;
 
-impl<T: StagedTemplate> Stage<T> {
+impl Stage {
     pub fn to_usvg_tree(&self) -> crate::Result<usvg::Tree> {
         let width = self.base.get_size().0 as f32;
         let height = self.base.get_size().1 as f32;
@@ -28,7 +28,7 @@ impl<T: StagedTemplate> Stage<T> {
 
         // Recursively add children to the root node
         // TODO: A slotmap may improve this, as we no longer need to hold a lock on the root node
-        let root: &T::Item = self
+        let root: &StageItem = self
             .base
             .get_item(self.base.get_root())
             .ok_or_else(|| PyramusError::OtherError("Root item not found in stage".to_string()))?;
@@ -167,7 +167,7 @@ impl PropItemType {
     }
 }
 
-pub fn render_string(stage: &Stage<impl StagedTemplate>) -> crate::Result<String> {
+pub fn render_string(stage: &Stage) -> crate::Result<String> {
     let tree = stage.to_usvg_tree()?;
     let s = tree.to_string(&XmlOptions::default());
     Ok(s)

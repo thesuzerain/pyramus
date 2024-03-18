@@ -1,24 +1,19 @@
+use crate::{
+    models::templates::{
+        ids::ItemId,
+        prop_item::{PropItemImage, PropItemImageData, PropItemText, PropItemType},
+        transform::RelativeTransform,
+    },
+    svg,
+};
 use image::io::Reader as ImageReader;
 use resvg::usvg::{self, NonZeroPositiveF32};
 use std::{io::Cursor, rc::Rc, sync::Arc};
 
-use crate::{models::editor::stage::StageItemBuilder, svg};
+use super::{BuilderType, ItemBuilder};
 
-use super::{
-    ids::ItemId,
-    prop_item::{PropItem, PropItemImage, PropItemImageData, PropItemText, PropItemType},
-    transform::RelativeTransform,
-};
-
-pub struct PropItemBuilder {
-    pub name: String,
-    pub item: PropItemTypeBuilder,
-    pub parent: Option<ItemId>,
-    pub transform: RelativeTransform,
-}
-
-impl PropItemBuilder {
-    pub fn build_text_basic(text: impl ToString) -> PropItemBuilder {
+impl ItemBuilder {
+    pub fn build_text_basic(text: impl ToString) -> ItemBuilder {
         Self::build_text(text, "Arial".to_string(), 12.0, (0, 0, 0), false)
     }
 
@@ -28,37 +23,37 @@ impl PropItemBuilder {
         font_size: f32,
         color: (u8, u8, u8),
         italic: bool,
-    ) -> PropItemBuilder {
-        PropItemBuilder {
+    ) -> ItemBuilder {
+        ItemBuilder {
             name: "text".to_string(),
-            item: PropItemTypeBuilder::Text {
+            builder: BuilderType::PropItem(PropItemTypeBuilder::Text {
                 text: text.to_string(),
                 font_family,
                 font_size,
                 color,
                 italic,
-            },
+            }),
             parent: None,
             transform: Default::default(),
         }
     }
 
-    pub fn build_image_from_svg(svg: String) -> PropItemBuilder {
-        PropItemBuilder {
+    pub fn build_image_from_svg(svg: String) -> ItemBuilder {
+        ItemBuilder {
             name: "image".to_string(),
-            item: PropItemTypeBuilder::ImageFromSvg(svg),
+            builder: BuilderType::PropItem(PropItemTypeBuilder::ImageFromSvg(svg)),
             parent: None,
             transform: Default::default(),
         }
     }
 
-    pub fn build_image_from_bytes(bytes: Vec<u8>, ext: impl ToString) -> PropItemBuilder {
-        PropItemBuilder {
+    pub fn build_image_from_bytes(bytes: Vec<u8>, ext: impl ToString) -> ItemBuilder {
+        ItemBuilder {
             name: "image".to_string(),
-            item: PropItemTypeBuilder::ImageFromBytes {
+            builder: BuilderType::PropItem(PropItemTypeBuilder::ImageFromBytes {
                 bytes,
                 ext: ext.to_string(),
-            },
+            }),
             parent: None,
             transform: Default::default(),
         }
@@ -73,8 +68,8 @@ impl PropItemBuilder {
         color: &str,
         stroke: Option<u32>,
         alpha: f32,
-    ) -> PropItemBuilder {
-        PropItemBuilder::build_image_from_svg(svg::build_svg_rect(w, h, color, stroke, alpha))
+    ) -> ItemBuilder {
+        ItemBuilder::build_image_from_svg(svg::build_svg_rect(w, h, color, stroke, alpha))
     }
 
     pub fn parent(mut self, parent: ItemId) -> Self {
@@ -136,28 +131,6 @@ impl PropItemTypeBuilder {
                 })?;
                 PropItemType::Image(image)
             }
-        })
-    }
-}
-
-impl StageItemBuilder for PropItemBuilder {
-    type Item = PropItem;
-
-    fn build(self) -> crate::Result<Self::Item> {
-        let PropItemBuilder {
-            name,
-            item,
-            parent,
-            transform,
-        } = self;
-        let item = item.build()?;
-        Ok(PropItem {
-            id: ItemId::new(),
-            name: name.clone(),
-            item,
-            parent,
-            transform,
-            children: vec![],
         })
     }
 }

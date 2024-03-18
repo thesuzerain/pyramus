@@ -4,7 +4,7 @@
 use std::collections::HashMap;
 
 use pyramus::models::{
-    editor::staged_template::StagedTemplate,
+    editor::item::StageItem,
     templates::{
         prop::Prop,
         prop_item::{PropItem, PropItemType},
@@ -42,6 +42,9 @@ pub struct FrontendItem {
 
 #[derive(Debug, Tsify, Serialize, Deserialize)]
 pub enum FrontendItemType {
+    // TODO: This enum might need to be split for different stageable items
+    Prop,
+
     Text {
         text: String,
         font_family: String,
@@ -52,34 +55,62 @@ pub enum FrontendItemType {
     Image,
 }
 
-// Don't use 'From' trait because we want to convert with a reference
-impl FrontendStage {
-    pub fn from(stage: &pyramus::models::editor::stage::Stage<Prop>) -> FrontendStage {
-        FrontendStage {
-            items: stage
-                .base
-                .get_items()
-                .iter()
-                .map(|(id, item)| (id.0, FrontendItem::from(item, stage)))
-                .collect::<HashMap<_, _>>(),
-            selected: stage.selection.iter().map(|id| id.0).collect(),
+// Don't use 'From' trait because we want to convert with a reference, and with the stage context
+impl FrontendItem {
+    pub fn from(item: &StageItem, stage: &pyramus::models::editor::stage::Stage) -> FrontendItem {
+        match item {
+            StageItem::PropItem(item) => FrontendItem {
+                id: item.id.0,
+                name: item.name.clone(),
+                is_root: item.id == stage.base.get_root(),
+                parent: item.parent.map(|id| id.0),
+                children: item.children.iter().map(|id| id.0).collect(),
+                item_type: FrontendItemType::from(&item.item),
+                position: item.transform.position,
+                scale: item.transform.scale,
+                rotation: item.transform.rotation,
+            },
+            StageItem::Prop(prop) => FrontendItem {
+                id: prop.id.0,
+                name: prop.name.clone(),
+                is_root: prop.id == stage.base.get_root(),
+                parent: prop.parent.map(|id| id.0),
+                children: prop.children.iter().map(|id| id.0).collect(),
+                item_type: FrontendItemType::Prop,
+                position: prop.transform.position,
+                scale: prop.transform.scale,
+                rotation: prop.transform.rotation,
+            },
         }
     }
 }
 
-// Don't use 'From' trait because we want to convert with a reference, and with the stage context
-impl FrontendItem {
-    pub fn from(
-        item: &PropItem,
-        stage: &pyramus::models::editor::stage::Stage<impl StagedTemplate>,
-    ) -> FrontendItem {
+// TODO: these froms maybe should be moved?
+impl From<PropItem> for FrontendItem {
+    fn from(item: PropItem) -> FrontendItem {
         FrontendItem {
             id: item.id.0,
-            name: item.name.clone(),
-            is_root: item.id == stage.base.get_root(),
+            name: item.name,
+            is_root: false,
             parent: item.parent.map(|id| id.0),
             children: item.children.iter().map(|id| id.0).collect(),
             item_type: FrontendItemType::from(&item.item),
+            position: item.transform.position,
+            scale: item.transform.scale,
+            rotation: item.transform.rotation,
+        }
+    }
+}
+
+impl From<Prop> for FrontendItem {
+    fn from(item: Prop) -> FrontendItem {
+        FrontendItem {
+            id: item.id.0,
+            name: item.name,
+            is_root: false,
+            parent: item.parent.map(|id| id.0),
+            children: item.children.iter().map(|id| id.0).collect(),
+            item_type: FrontendItemType::Prop,
             position: item.transform.position,
             scale: item.transform.scale,
             rotation: item.transform.rotation,

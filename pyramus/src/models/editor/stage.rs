@@ -1,11 +1,8 @@
-use super::{item::StageItem, staged_template::StagedTemplate};
+use super::{item::StageItem, staged_template::BaseItem};
 use crate::{
     input::MouseState,
-    models::templates::{
-        ids::ItemId, prop::Prop, prop_builder::PropItemBuilder, transform::RelativeTransform,
-    },
+    models::templates::{ids::ItemId, prop::Prop},
 };
-use std::collections::HashMap;
 
 /// The stage is the main area where items are placed and manipulated.
 /// It is the main area of interaction for the user.
@@ -13,55 +10,41 @@ use std::collections::HashMap;
 /// - A prop (a collection of prop items)
 /// - A blueprint (a collection of props)
 #[derive(Debug)]
-pub struct Stage<T: StagedTemplate> {
-    pub base: T, // TODO: Should be able to be a blueprint or a prop. Stage<T> where T is 'stageable'
+pub struct Stage {
+    pub base: BaseItem, // TODO: Should be able to be a blueprint or a prop. Stage<T> where T is 'stageable'
     pub selection: Vec<ItemId>,
 
     // TODO: Should be exported to some other 'state'-type mechansms
     pub mouse_state: MouseState,
 }
 
-pub trait StageItemBuilder {
-    type Item: StageItem;
-
-    fn build(self) -> crate::Result<Self::Item>;
-}
-
-impl Stage<Prop> {
+// TODO: Move these functions to separate modules/files
+impl Stage {
     // TODO: Background color should be a color type (consistency with other parts of the codebase)
     // TODO: Background color should be optional, or a pattern (like how Photoshop does transparency)
-    pub fn build(width: u32, height: u32) -> crate::Result<Stage<Prop>> {
-        // TODO: Revisit this function after blueprint refactor
-        let root = PropItemBuilder::build_image_from_rect(width, height, "red", None, 1.0)
-            .name("root")
-            .build()?;
-        let id = root.id;
 
-        let mut items = HashMap::new();
-        items.insert(root.id, root);
-
-        let base: Prop = Prop {
-            name: "temp".to_string(),
-            items,
-            root: id,
-            size: (width, height),
-        };
-
-        Ok(Stage {
-            base,
+    // TODO: This should become trait again, with one build()
+    pub fn build_prop(base: Prop) -> Stage {
+        Stage {
+            base: BaseItem::Prop(base),
             selection: Vec::new(),
             mouse_state: MouseState::Idle,
-        })
+        }
     }
-}
 
-// TODO: Move these functions to separate modules/files
-impl<T: StagedTemplate> Stage<T> {
     pub fn set_selection(&mut self, selection: Vec<ItemId>) {
         self.selection = selection;
     }
 
-    pub fn get_selections(&self) -> Vec<&T::Item> {
+    pub fn get_selections_mut(&mut self) -> Vec<&StageItem> {
+        // TODO: Revisit this function after blueprint refactor- move to prop?
+        self.selection
+            .iter()
+            .filter_map(|id| self.base.get_item(*id))
+            .collect()
+    }
+
+    pub fn get_selections(&self) -> Vec<&StageItem> {
         // TODO: Revisit this function after blueprint refactor- move to prop?
         self.selection
             .iter()
@@ -80,8 +63,8 @@ impl<T: StagedTemplate> Stage<T> {
                 continue;
             }
 
-            let item: &T::Item = self.base.get_item(item_id).unwrap(); // TODO: unwrap
-            if item.contains_point(x, y, self as &Stage<T>) {
+            let item: &StageItem = self.base.get_item(item_id).unwrap(); // TODO: unwrap
+            if item.contains_point(x, y, self as &Stage) {
                 return Some(item_id);
             }
         }
@@ -100,7 +83,7 @@ impl<T: StagedTemplate> Stage<T> {
         render_order
     }
 
-    fn get_render_order_recursive(stage: &Stage<T>, item_id: ItemId) -> Vec<ItemId> {
+    fn get_render_order_recursive(stage: &Stage, item_id: ItemId) -> Vec<ItemId> {
         let item = stage.base.get_item(item_id).unwrap(); // TODO: Handle this unwrap properly
         let mut render_order = vec![item_id];
         for child in item.get_children() {
@@ -111,43 +94,8 @@ impl<T: StagedTemplate> Stage<T> {
 }
 
 // TODO: Remove, this is just for testing of WASM rendering before other features are implemented
-pub fn example_stage() -> crate::Result<Stage<Prop>> {
-    let mut stage = Stage::build(800, 600)?;
-
-    // Add a simple translucent rectangle as the background
-    let rect = stage.base.add_child(
-        PropItemBuilder::build_image_from_rect(300, 200, "blue", None, 0.5).name("Rectangle"),
-    )?;
-
-    // TODO: Easy way to center items within their parent/the stage
-    // TODO: Render order (z-index)
-
-    // Add example text and image
-    let image = stage.base.add_child(
-        PropItemBuilder::build_image_from_bytes(
-            include_bytes!("../../../../testimg.jpg").to_vec(),
-            "jpg",
-        )
-        .parent(rect)
-        .name("Image")
-        .transform(RelativeTransform {
-            position: (50.0, 50.0),
-            scale: (0.5, 0.5),
-            rotation: 45.0,
-        }),
-    )?;
-
-    // Add example text and image
-    stage.base.add_child(
-        PropItemBuilder::build_text_basic("Hello, world!")
-            .name("Text")
-            .parent(image)
-            .transform(RelativeTransform {
-                position: (100.0, 50.0),
-                scale: (1.0, 5.0),
-                rotation: -90.0, // Perpendicular to the image, not the stage
-            }),
-    )?;
-
+pub fn example_stage() -> crate::Result<Stage> {
+    let prop = Prop::build_random("Test", 800, 600);
+    let stage = Stage::build_prop(prop);
     Ok(stage)
 }
