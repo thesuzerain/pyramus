@@ -1,6 +1,6 @@
 use crate::{
+    editor::{self, command},
     models::FrontendStage,
-    new_editor::{self, command},
 };
 use pyramus::{
     command::BackendCommand,
@@ -54,11 +54,11 @@ pub fn edit_transform(
 
 #[wasm_bindgen(js_name = getStage)]
 pub fn get_items() -> Result<FrontendStage, JsError> {
-    new_editor::RUNTIME.with(|runtime| {
+    editor::RUNTIME.with(|runtime| {
         let runtime = runtime.borrow();
         Ok(runtime
             .as_ref()
-            .map(|runtime| runtime.stage.to_frontend_stage())
+            .map(|runtime| FrontendStage::from(&runtime.stage))
             .ok_or_else(|| pyramus::PyramusError::NoRuntimeFound)?)
     })
 }

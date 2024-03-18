@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 
-use crate::new_editor::RUNTIME;
+use crate::editor::RUNTIME;
 
 #[wasm_bindgen(js_name = testRenderStringResvg)]
 pub fn test_render_string() -> Result<String, JsError> {

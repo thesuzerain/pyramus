@@ -56,6 +56,20 @@ pub enum FrontendItemType {
 }
 
 // Don't use 'From' trait because we want to convert with a reference, and with the stage context
+impl FrontendStage {
+    pub fn from(stage: &pyramus::models::editor::stage::Stage) -> FrontendStage {
+        FrontendStage {
+            items: stage
+                .base
+                .get_items()
+                .iter()
+                .map(|(id, item)| (id.0, FrontendItem::from(item, stage)))
+                .collect::<HashMap<_, _>>(),
+            selected: stage.selection.iter().map(|id| id.0).collect(),
+        }
+    }
+}
+
 impl FrontendItem {
     pub fn from(item: &StageItem, stage: &pyramus::models::editor::stage::Stage) -> FrontendItem {
         match item {

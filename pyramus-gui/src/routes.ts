@@ -14,19 +14,11 @@ const routes = [
     },
   },
   {
-    path: '/editor/prop',
-    name: 'Prop Editor',
+    path: '/editor/:type',
+    name: 'Editor',
     component: Pages.EditorSvg,
     meta: {
-      breadcrumb: [{ name: 'Prop Editor' }],
-    },
-  },
-  {
-    path: '/editor/blueprint',
-    name: 'Blueprint Editor',
-    component: Pages.EditorSvg,
-    meta: {
-      breadcrumb: [{ name: 'Blueprint Editor' }],
+      breadcrumb: [{ name: 'Editor' }],
     },
   },
 ]

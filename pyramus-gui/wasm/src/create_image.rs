@@ -4,7 +4,7 @@ use pyramus::{
 };
 use wasm_bindgen::prelude::*;
 
-use crate::new_editor::command;
+use crate::editor::command;
 
 #[wasm_bindgen(js_name = uploadImage)]
 pub fn upload_image(name: String, parent: u32, data: Vec<u8>) -> Result<(), JsError> {

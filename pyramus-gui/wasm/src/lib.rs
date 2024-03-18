@@ -1,6 +1,9 @@
-use new_editor::{CALLBACKS, RUNTIME};
+use editor::{dispatch_frontend_command, CALLBACKS, RUNTIME};
+use pyramus::command::FrontendCommand;
 use std::panic;
 use wasm_bindgen::prelude::*;
+
+// TODO: panic handler
 
 pub mod create_image;
 pub mod editor;
@@ -8,15 +11,53 @@ pub mod image;
 pub mod input;
 pub mod item;
 pub mod models;
-pub mod new_editor;
 pub mod render; // TODO: rename
 
 #[wasm_bindgen(start)]
 pub fn init_app() {
     panic::set_hook(Box::new(console_error_panic_hook::hook));
     RUNTIME.with(|runtime| {
-        *runtime.borrow_mut() = Some(new_editor::Runtime::new());
+        *runtime.borrow_mut() = Some(editor::Runtime::new());
     });
+}
+
+#[wasm_bindgen(js_name = switchProp)]
+pub fn switch_prop() -> Result<(), JsValue> {
+    editor::RUNTIME.with(|runtime| {
+        let mut runtime = runtime.borrow_mut();
+        let runtime = runtime.as_mut().unwrap();
+        runtime.set_prop();
+    });
+
+    // TODO: Reorganize this
+    CALLBACKS.with(|callbacks| {
+        let js_callbacks = callbacks.borrow();
+        let command = FrontendCommand::Rerender;
+        dispatch_frontend_command(&js_callbacks, command)?;
+        Ok::<(), JsError>(())
+    })?;
+
+    Ok(())
+}
+
+#[wasm_bindgen(js_name = switchBlueprint)]
+pub fn switch_blueprint() -> Result<(), JsValue> {
+    editor::RUNTIME.with(|runtime| {
+        let mut runtime = runtime.borrow_mut();
+        let runtime = runtime.as_mut().unwrap();
+        runtime.set_blueprint();
+        Ok::<(), JsError>(())
+    })?;
+
+    // TODO: Reorganize this
+    CALLBACKS.with(|callbacks| {
+        let js_callbacks = callbacks.borrow();
+        let command = FrontendCommand::Rerender;
+        dispatch_frontend_command(&js_callbacks, command)?;
+        Ok::<(), JsError>(())
+    })?;
+
+    Ok(())
 }
 
 #[wasm_bindgen(js_name = subscribeFrontendCommand)]
