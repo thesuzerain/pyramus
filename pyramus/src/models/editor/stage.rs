@@ -71,7 +71,7 @@ impl Stage {
             }
 
             let item: &StageItem = self.base.get_item(item_id).unwrap(); // TODO: unwrap
-            if item.contains_point(x, y, self as &Stage) {
+            if item.contains_point(x, y, &self.base) {
                 return Some(item_id);
             }
         }
@@ -109,7 +109,6 @@ pub fn example_stage_prop() -> crate::Result<Stage> {
 
 // TODO: Remove, this is just for testing of WASM rendering before other features are implemented
 pub fn example_stage_blueprint() -> crate::Result<Stage> {
-    crate::log!("Building blueprint");
     let prop = Blueprint::build_random("Test", 800, 600);
     let stage = Stage::build_blueprint(prop);
     Ok(stage)
