@@ -1,19 +1,23 @@
 use std::collections::HashMap;
 
+use serde::{Deserialize, Serialize};
+
 use crate::models::templates::{
-    builder::ItemBuilder, ids::ItemId, prop::Prop, transform::RelativeTransform,
+    blueprint::Blueprint, builder::ItemBuilder, ids::ItemId, prop::Prop,
+    transform::RelativeTransform,
 };
 
 use super::item::StageItem;
 
 // TODO: Trait-ify this as much as you can
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum BaseItem {
     Prop(Prop),
+    Blueprint(Blueprint),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseTemplate {
     pub items: HashMap<ItemId, StageItem>,
 
@@ -28,12 +32,14 @@ impl BaseItem {
     pub fn get_template_mut(&mut self) -> &mut BaseTemplate {
         match self {
             BaseItem::Prop(prop) => &mut prop.template,
+            BaseItem::Blueprint(blueprint) => &mut blueprint.template,
         }
     }
 
     pub fn get_template(&self) -> &BaseTemplate {
         match self {
             BaseItem::Prop(prop) => &prop.template,
+            BaseItem::Blueprint(blueprint) => &blueprint.template,
         }
     }
 
@@ -108,7 +114,7 @@ impl BaseItem {
         }
 
         if let Some(item) = template.items.get_mut(&id) {
-            f(&mut item.get_relative_transform_mut())
+            f(item.get_relative_transform_mut())
         } else {
             Err(crate::PyramusError::OtherError(
                 "Item not found".to_string(),

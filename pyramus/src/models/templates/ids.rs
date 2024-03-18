@@ -1,6 +1,8 @@
 use js_sys::Math::random;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct ItemId(pub u32);
 impl ItemId {
     pub fn new() -> ItemId {

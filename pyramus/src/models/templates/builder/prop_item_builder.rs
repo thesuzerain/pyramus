@@ -12,6 +12,7 @@ use std::{io::Cursor, rc::Rc, sync::Arc};
 
 use super::{BuilderType, ItemBuilder};
 
+// TODO I don't like these being in ItemBuilder
 impl ItemBuilder {
     pub fn build_text_basic(text: impl ToString) -> ItemBuilder {
         Self::build_text(text, "Arial".to_string(), 12.0, (0, 0, 0), false)
@@ -88,6 +89,7 @@ impl ItemBuilder {
     }
 }
 
+#[derive(Debug)]
 pub enum PropItemTypeBuilder {
     Text {
         text: String,

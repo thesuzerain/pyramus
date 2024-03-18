@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 
+// TODO: Can we add tracing?
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {

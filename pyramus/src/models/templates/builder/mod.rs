@@ -7,6 +7,7 @@ use super::{ids::ItemId, prop_item::PropItem, transform::RelativeTransform};
 pub mod prop_builder;
 pub mod prop_item_builder;
 
+#[derive(Debug)]
 pub struct ItemBuilder {
     pub name: String,
 
@@ -16,6 +17,7 @@ pub struct ItemBuilder {
     pub transform: RelativeTransform,
 }
 
+#[derive(Debug)]
 pub enum BuilderType {
     PropItem(PropItemTypeBuilder),
     Prop(PropTypeBuilder),

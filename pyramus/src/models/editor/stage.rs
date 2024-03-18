@@ -1,7 +1,7 @@
 use super::{item::StageItem, staged_template::BaseItem};
 use crate::{
     input::MouseState,
-    models::templates::{ids::ItemId, prop::Prop},
+    models::templates::{blueprint::Blueprint, ids::ItemId, prop::Prop},
 };
 
 /// The stage is the main area where items are placed and manipulated.
@@ -32,6 +32,14 @@ impl Stage {
         }
     }
 
+    pub fn build_blueprint(base: Blueprint) -> Stage {
+        Stage {
+            base: BaseItem::Blueprint(base),
+            selection: Vec::new(),
+            mouse_state: MouseState::Idle,
+        }
+    }
+
     pub fn set_selection(&mut self, selection: Vec<ItemId>) {
         self.selection = selection;
     }
@@ -57,7 +65,6 @@ impl Stage {
         // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker
         // TODO: Caching will help this
         let render_ordered = self.get_render_order();
-        crate::log!("Render ordered: {:?}", render_ordered);
         for item_id in render_ordered.into_iter().rev() {
             if !include_root && item_id == self.base.get_root() {
                 continue;
@@ -94,8 +101,16 @@ impl Stage {
 }
 
 // TODO: Remove, this is just for testing of WASM rendering before other features are implemented
-pub fn example_stage() -> crate::Result<Stage> {
+pub fn example_stage_prop() -> crate::Result<Stage> {
     let prop = Prop::build_random("Test", 800, 600);
     let stage = Stage::build_prop(prop);
+    Ok(stage)
+}
+
+// TODO: Remove, this is just for testing of WASM rendering before other features are implemented
+pub fn example_stage_blueprint() -> crate::Result<Stage> {
+    crate::log!("Building blueprint");
+    let prop = Blueprint::build_random("Test", 800, 600);
+    let stage = Stage::build_blueprint(prop);
     Ok(stage)
 }

@@ -2,9 +2,12 @@ use crate::models::editor::staged_template::{BaseItem, BaseTemplate};
 
 use super::{builder::ItemBuilder, ids::ItemId, transform::RelativeTransform};
 use js_sys::Math::random;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+// TODO: remove clone
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Prop {
     pub id: ItemId,
     pub name: String,
@@ -29,7 +32,6 @@ impl Prop {
         let mut items = HashMap::new();
         let root_builder = ItemBuilder::build_image_from_rect(width, height, "white", None, 0.1);
         let root = root_builder.build().unwrap(); // TODO: Handle error
-
         let id = root.get_id();
         items.insert(root.get_id(), root);
 
@@ -51,8 +53,8 @@ impl Prop {
 
     // TODO: Remove, this is just to generate random props for testing
     pub fn build_random(name: impl ToString, width: u32, height: u32) -> Prop {
-        let center_x = width / 2;
-        let center_y = height / 2;
+        let center_x = (width / 2) as i32;
+        let center_y = (height / 2) as i32;
 
         // TODO: commentate
         let prop = Prop::new(name, width, height);
@@ -62,9 +64,8 @@ impl Prop {
         // Add a randomly sized translucent rectangle as the background
         let rect_width = 100 + (random() * 200.0) as u32;
         let rect_height = 100 + (random() * 200.0) as u32;
-
-        let rect_dx = center_x - (rect_width / 2);
-        let rect_dy = center_y - (rect_height / 2);
+        let rect_dx = center_x - (rect_width as i32 / 2);
+        let rect_dy = center_y - (rect_height as i32 / 2);
 
         let rect = prop
             .add_child(
@@ -100,7 +101,11 @@ impl Prop {
         .unwrap(); // TODO: Handle error
 
         // Extract
-        let BaseItem::Prop(prop) = prop;
-        prop
+
+        if let BaseItem::Prop(prop) = prop {
+            prop
+        } else {
+            panic!("Failed to extract prop") // TODO: Handle error, or refactor
+        }
     }
 }

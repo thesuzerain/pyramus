@@ -8,11 +8,12 @@ use crate::{
     svg, PyramusError,
 };
 
-use super::stage::Stage;
+use super::{stage::Stage, staged_template::BaseItem};
 use glam::{Affine2, Vec2};
 use resvg::usvg::{self, Transform};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StageItem {
     PropItem(PropItem),
     Prop(Prop),
@@ -136,10 +137,10 @@ impl StageItem {
     }
 
     /// Convert the item to a usvg node
-    pub fn to_usvg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
+    pub fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
         match self {
-            StageItem::PropItem(item) => item.to_usvg_node(stage),
-            StageItem::Prop(prop) => prop.to_usvg_node(stage),
+            StageItem::PropItem(item) => item.to_usvg_node(outer_base_item),
+            StageItem::Prop(prop) => prop.to_usvg_node(outer_base_item),
         }
     }
 
@@ -153,22 +154,38 @@ impl StageItem {
 }
 
 impl Prop {
-    fn to_usvg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
-        let mut group = usvg::Group::default();
-
-        let root_id = self.template.root;
+    fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
+        // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
+        let transform = to_transform(self.transform.to_glam_affine());
 
         // Recursively add children to the root node
         // TODO: A slotmap may improve this, as we no longer need to hold a lock on the root node
+        let root_id = self.template.root;
         let root: &StageItem = self.template.items.get(&root_id).ok_or_else(|| {
             PyramusError::OtherError("Root item not found in template".to_string())
         })?;
 
-        {
-            group.children.push(root.to_usvg_node(stage)?);
+        // Create object- recursive, creates propitems within props
+        // We use this as our base item for the internal prop item recursion
+        // TODO: no clone, use reference, traits
+        let base = BaseItem::Prop(self.clone());
+        let mut children = vec![root.to_usvg_node(&base)?];
+
+        // Children in scene other props, if any
+        for child in &self.children {
+            // simplify
+            let child = outer_base_item.get_items().get(child).ok_or_else(|| {
+                PyramusError::OtherError(format!("Child prop item not found in prop: {:?}", child))
+                // TODO: Not found could be abstracted
+            })?;
+            children.push(child.to_usvg_node(outer_base_item)?);
         }
 
-        Ok(usvg::Node::Group(Box::new(group)))
+        Ok(usvg::Node::Group(Box::new(usvg::Group {
+            transform,
+            children,
+            ..Default::default()
+        })))
     }
 
     // TODO: almost identical to to the other one, abstract this
@@ -228,7 +245,11 @@ impl Prop {
 // TODO: I don't like this being here- this was StagedItem
 // This should be made into a trait that both Prop and PropItem implement
 impl PropItem {
-    fn to_usvg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
+    fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
+        crate::log!(
+            "Creating prop item node, with children: {:?}",
+            self.children
+        );
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
         let transform = to_transform(self.transform.to_glam_affine());
 
@@ -237,10 +258,10 @@ impl PropItem {
         let mut children = vec![self.item.to_usvg_node()?];
         for child in &self.children {
             // simplify
-            let child = stage.base.get_template().items.get(child).ok_or_else(|| {
+            let child = outer_base_item.get_items().get(child).ok_or_else(|| {
                 PyramusError::OtherError("Child item not found in stage".to_string())
             })?;
-            children.push(child.to_usvg_node(stage)?);
+            children.push(child.to_usvg_node(outer_base_item)?);
         }
 
         Ok(usvg::Node::Group(Box::new(usvg::Group {

@@ -1,7 +1,8 @@
 use js_sys::Math::random;
+use serde::{Deserialize, Serialize};
 
 // TODO: Is this still needed now that we have Affine2?
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RelativeTransform {
     pub position: (f32, f32),
     pub scale: (f32, f32),

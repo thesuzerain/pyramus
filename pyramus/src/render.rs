@@ -34,7 +34,7 @@ impl Stage {
             .ok_or_else(|| PyramusError::OtherError("Root item not found in stage".to_string()))?;
 
         {
-            tree.root.children.push(root.to_usvg_node(self)?);
+            tree.root.children.push(root.to_usvg_node(&self.base)?);
         }
 
         // Add outlines overtop of the nodes
