@@ -1,3 +1,5 @@
+use std::panic;
+
 use wasm_bindgen::prelude::*;
 
 pub mod create_image;
@@ -10,6 +12,7 @@ pub mod render; // TODO: rename
 
 #[wasm_bindgen(start)]
 pub fn init_app() {
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
     editor::RUNTIME.with(|runtime| {
         *runtime.borrow_mut() = Some(editor::EditorRuntime::new());
     });
