@@ -1,11 +1,10 @@
 use crate::{
     models::{
-        item::{Item, ItemImage, StagedItem},
-        stage::Stage,
+        editor::{item::StageItem, stage::Stage},
+        templates::prop_item::{PropItem, PropItemType},
     },
     PyramusError,
 };
-use glam::Affine2;
 use svgtypes::parse_font_families;
 
 use resvg::usvg::{self, Font, FontStyle, TextSpan, Transform, XmlOptions};
@@ -13,8 +12,8 @@ use usvg::fontdb;
 
 impl Stage {
     pub fn to_usvg_tree(&self) -> crate::Result<usvg::Tree> {
-        let width = self.size.0 as f32;
-        let height = self.size.1 as f32;
+        let width = self.base.get_size().0 as f32;
+        let height = self.base.get_size().1 as f32;
         let mut tree = usvg::Tree {
             size: usvg::Size::from_wh(width, height)
                 .ok_or_else(|| PyramusError::InvalidSize(width, height))?,
@@ -29,18 +28,18 @@ impl Stage {
 
         // Recursively add children to the root node
         // TODO: A slotmap may improve this, as we no longer need to hold a lock on the root node
-        let root = self
-            .items
-            .get(&self.root)
+        let root: &StageItem = self
+            .base
+            .get_item(self.base.get_root())
             .ok_or_else(|| PyramusError::OtherError("Root item not found in stage".to_string()))?;
 
         {
-            tree.root.children.push(root.to_usvg_node(self)?);
+            tree.root.children.push(root.to_usvg_node(&self.base)?);
         }
 
         // Add outlines overtop of the nodes
         for item in self.get_selections() {
-            tree.root.children.push(item.to_outline_svg_node(self)?);
+            tree.root.children.push(item.to_outline_svg_node(&self.base)?);
         }
 
         // Postprocessing step
@@ -58,88 +57,16 @@ impl Stage {
     }
 }
 
-impl StagedItem {
+// TODO: Trait renderable
+impl PropItem {
     // From Graphite
-    fn to_transform(transform: Affine2) -> usvg::Transform {
-        let cols = transform.to_cols_array();
-        usvg::Transform::from_row(cols[0], cols[1], cols[2], cols[3], cols[4], cols[5])
-    }
-
-    pub fn to_usvg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
-        // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
-        let transform = Self::to_transform(self.transform.to_glam_affine());
-
-        // All nodes are contained in a group node, so we can apply the transform to the group node, and then apply the transform to the children nodes
-        // TODO: Is this needed?
-        let mut children = vec![self.item.to_usvg_node()?];
-        for child in &self.children {
-            let child = stage.items.get(child).ok_or_else(|| {
-                PyramusError::OtherError("Child item not found in stage".to_string())
-            })?;
-            children.push(child.to_usvg_node(stage)?);
-        }
-
-        Ok(usvg::Node::Group(Box::new(usvg::Group {
-            transform,
-            children,
-            ..Default::default()
-        })))
-    }
-
-    pub fn to_outline_svg_node(&self, stage: &Stage) -> crate::Result<usvg::Node> {
-        let outline_size = 20.0;
-
-        // Get bounds of node
-        // TODO: NEed consistency between x1x2 and xywh formats
-        let (x0, y0, x1, y1) = self.item.get_local_bounds();
-        let transform = Self::to_transform(self.get_screen_transform(stage));
-
-        let x0 = x0 - outline_size;
-        let y0 = y0 - outline_size;
-        let x1 = x1 + outline_size;
-        let y1 = y1 + outline_size;
-
-        crate::log!(
-            "Outline for : {x0} {y0}, {x1} {y1}, width: {w}, height: {h}",
-            w = x1 - x0,
-            h = y1 - y0
-        );
-        let image = usvg::Node::Image(Box::new(usvg::Image {
-            id: String::new(),
-            abs_transform: Transform::identity(), // Set on postprocessing, not here
-            bounding_box: None,
-            visibility: usvg::Visibility::Visible,
-            view_box: usvg::ViewBox {
-                rect: usvg::NonZeroRect::from_ltrb(x0, y0, x1, y1).ok_or_else(|| {
-                    crate::log!("Invalid size to_outline_svg_node: {x0}, {y0}, {x1}, {y1}");
-                    PyramusError::InvalidSize(x1 - x0, y1 - y0)
-                })?,
-                aspect: usvg::AspectRatio::default(),
-            },
-            rendering_mode: usvg::ImageRendering::OptimizeSpeed,
-            kind: ItemImage::from_rect(
-                (x1 - x0) as u32,
-                (y1 - y0) as u32,
-                "blue",
-                Some(outline_size as u32),
-                0.5,
-            )?
-            .data
-            .into(),
-        }));
-
-        Ok(usvg::Node::Group(Box::new(usvg::Group {
-            transform,
-            children: vec![image],
-            ..Default::default()
-        })))
-    }
+    // TODO: you have multiple uses of this
 }
 
-impl Item {
+impl PropItemType {
     pub fn to_usvg_node(&self) -> crate::Result<usvg::Node> {
         match &self {
-            Item::Text(text) => {
+            PropItemType::Text(text) => {
                 // TODO: There doesn't seem to be a way in resvg to create a text node directly/simply.
                 // An alternative would be simply parsing a string- but that's hacky, and it might reload fonts.
                 // TODO: Check if it reloads fonts, and/or find a way to do this more simply.
@@ -216,7 +143,7 @@ impl Item {
                 }));
                 Ok(node)
             }
-            Item::Image(image) => Ok(usvg::Node::Image(Box::new(usvg::Image {
+            PropItemType::Image(image) => Ok(usvg::Node::Image(Box::new(usvg::Image {
                 id: String::new(),
                 abs_transform: Transform::identity(), // Set on postprocessing, not here
                 bounding_box: None,

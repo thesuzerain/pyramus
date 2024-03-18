@@ -4,7 +4,7 @@ use crate::{
 };
 use pyramus::{
     command::BackendCommand,
-    models::item::{RelativeTransform, StagedItemId},
+    models::templates::{ids::ItemId, transform::RelativeTransform},
 };
 use wasm_bindgen::prelude::*;
 
@@ -13,21 +13,21 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen(js_name = removeObject)]
 // TODO: should we have a way this can directly return an error?
 pub fn remove_object(item_id: u32) -> Result<(), JsError> {
-    command([BackendCommand::DeleteItem(StagedItemId(item_id))])?;
+    command(vec![BackendCommand::DeleteItem(ItemId(item_id))])?;
     Ok(())
 }
 
 #[wasm_bindgen(js_name = selectObjects)]
 pub fn select_objects(item_ids: Vec<u32>) -> Result<(), JsError> {
-    command([BackendCommand::SetSelection(
-        item_ids.into_iter().map(StagedItemId).collect(),
+    command(vec![BackendCommand::SetSelection(
+        item_ids.into_iter().map(ItemId).collect(),
     )])?;
     Ok(())
 }
 
 #[wasm_bindgen(js_name = renameObject)]
 pub fn rename_object(item_id: u32, name: String) -> Result<(), JsError> {
-    command([BackendCommand::RenameItem(StagedItemId(item_id), name)])?;
+    command(vec![BackendCommand::RenameItem(ItemId(item_id), name)])?;
     Ok(())
 }
 
@@ -41,8 +41,8 @@ pub fn edit_transform(
     scale_y: f32,
 ) -> Result<(), JsError> {
     // TODO: This might make more sense as 3 separate functions
-    command([BackendCommand::EditTransform(
-        StagedItemId(item_id),
+    command(vec![BackendCommand::EditTransform(
+        ItemId(item_id),
         RelativeTransform {
             scale: (scale_x, scale_y),
             rotation,

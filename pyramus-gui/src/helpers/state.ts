@@ -1,4 +1,4 @@
-import init, { wasmMemory } from '@/../wasm/pkg/pyramus_wasm.js'
+import init, { wasmMemory, switchProp, switchBlueprint } from '@/../wasm/pkg/pyramus_wasm.js'
 
 export type WasmRawInstance = WebAssembly.Memory
 
@@ -24,4 +24,12 @@ export function getWasm(): WasmRawInstance {
 // TODO: may not be necessary anymore now that we are no longer editing the buffer directly
 export function getRawBuffer(): ArrayBuffer {
   return getWasm().buffer
+}
+
+export function switchToPropEditor() {
+  return switchProp()
+}
+
+export function switchToBlueprintEditor() {
+  return switchBlueprint()
 }

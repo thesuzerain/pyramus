@@ -1,6 +1,6 @@
 use crate::{
     command::{BackendCommand, FrontendCommand},
-    models::stage::Stage,
+    models::editor::stage::Stage,
 };
 
 #[derive(Debug)]
@@ -40,27 +40,27 @@ pub enum InputEvent {
     // TODO: Keyboard events
 }
 
-impl InputEvent {
-    pub fn process(self, stage: &mut Stage) -> crate::Result<Vec<FrontendCommand>> {
-        match self {
-            Self::MouseDown { x, y } => {
-                stage.mouse_state = MouseState::MouseDown(x, y);
-                Ok(handle_selection(stage, x, y)?)
+impl Stage {
+    pub fn process_event(&mut self, event: InputEvent) -> crate::Result<Vec<FrontendCommand>> {
+        match event {
+            InputEvent::MouseDown { x, y } => {
+                self.mouse_state = MouseState::MouseDown(x, y);
+                Ok(handle_selection(self, x, y)?)
             }
-            Self::MouseUp => {
+            InputEvent::MouseUp => {
                 let frontend_commands =
-                    if let MouseState::MouseDown(start_x, start_y) = stage.mouse_state {
-                        handle_click(stage, start_x, start_y)?
+                    if let MouseState::MouseDown(start_x, start_y) = self.mouse_state {
+                        handle_click(self, start_x, start_y)?
                     } else {
                         vec![]
                     };
-                stage.mouse_state = MouseState::Idle;
+                self.mouse_state = MouseState::Idle;
                 Ok(frontend_commands)
             }
-            Self::MouseMove { delta_x, delta_y } => {
-                stage.mouse_state.update_from_movement(delta_x, delta_y)?;
-                let frontend_commands = if let MouseState::DraggingMovement = stage.mouse_state {
-                    handle_drag(stage, delta_x, delta_y)?
+            InputEvent::MouseMove { delta_x, delta_y } => {
+                self.mouse_state.update_from_movement(delta_x, delta_y)?;
+                let frontend_commands = if let MouseState::DraggingMovement = self.mouse_state {
+                    handle_drag(self, delta_x, delta_y)?
                 } else {
                     vec![]
                 };
@@ -75,20 +75,20 @@ fn handle_selection(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<Fron
     let item_id = stage.get_front_item_at(x, y, false);
 
     if let Some(item_id) = item_id {
-        if stage.get_selections().iter().any(|s| s.id == item_id) {
+        if stage.selection.iter().any(|s| *s == item_id) {
             // If we click an item, and it's already selected, do nothing (perhaps it will be dragged, etc)
             Ok(vec![])
         } else {
             // If we click an item, and it's not already selected, select it
-            Ok(BackendCommand::SetSelection(vec![item_id]).process(stage)?)
+            Ok(stage.process_command(BackendCommand::SetSelection(vec![item_id]))?)
         }
-    } else if stage.get_selections().is_empty() {
+    } else if stage.get_selections_mut().is_empty() {
         // If we click nothing, and we have no selection, do nothing
         // TODO: This should do a box select
         Ok(vec![])
     } else {
         // If we click nothing, and we have a selection, clear the selection
-        Ok(BackendCommand::SetSelection(vec![]).process(stage)?)
+        Ok(stage.process_command(BackendCommand::SetSelection(vec![]))?)
     }
 }
 
@@ -98,7 +98,7 @@ fn handle_click(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<Frontend
     // If we fully get through a click, and it's on an item, select it
     // This 'overrides' 'handle_selection' behaviour as we know we aren't dragging
     if let Some(item_id) = item_id {
-        Ok(BackendCommand::SetSelection(vec![item_id]).process(stage)?)
+        Ok(stage.process_command(BackendCommand::SetSelection(vec![item_id]))?)
     } else {
         Ok(vec![])
     }
@@ -109,9 +109,8 @@ fn handle_drag(
     delta_x: f32,
     delta_y: f32,
 ) -> crate::Result<Vec<FrontendCommand>> {
-    BackendCommand::TranslateGroup(
-        stage.get_selections().iter().map(|s| s.id).collect(),
+    stage.process_command(BackendCommand::TranslateGroup(
+        stage.selection.clone(),
         (delta_x, delta_y),
-    )
-    .process(stage)
+    ))
 }

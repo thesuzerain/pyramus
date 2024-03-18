@@ -1,10 +1,10 @@
 use wasm_bindgen::prelude::*;
 
-use crate::editor;
+use crate::editor::RUNTIME;
 
 #[wasm_bindgen(js_name = testRenderStringResvg)]
 pub fn test_render_string() -> Result<String, JsError> {
-    editor::RUNTIME.with(|runtime| {
+    RUNTIME.with(|runtime| {
         let runtime = runtime.borrow();
         runtime
             .as_ref()

@@ -1,2 +1,2 @@
-pub mod item;
-pub mod stage;
+pub mod editor;
+pub mod templates;
