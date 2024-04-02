@@ -1,4 +1,5 @@
+pub mod base_item;
 pub mod item;
 pub mod stage;
-pub mod staged_template;
+pub mod staging;
 pub mod usvg_node;

@@ -3,7 +3,9 @@ use std::{rc::Rc, sync::Arc};
 use resvg::usvg::{self, NonZeroPositiveF32};
 use serde::{Deserialize, Serialize};
 
-use super::{ids::ItemId, transform::RelativeTransform};
+use crate::models::editor::staging::StagingContext;
+
+use super::ids::ItemId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)] // TODO: remove clone
 pub struct PropItem {
@@ -11,11 +13,7 @@ pub struct PropItem {
     pub name: String,
     pub item: PropItemType,
 
-    // Stageable objects (TODO: Move to a separate struct?)
-    // Within a blueprint, if applicable, or parent
-    pub parent: Option<ItemId>,
-    pub children: Vec<ItemId>,        // If None, then it's a root item
-    pub transform: RelativeTransform, // Within a prop (or parent)
+    pub staging: StagingContext,
 }
 
 impl PropItem {

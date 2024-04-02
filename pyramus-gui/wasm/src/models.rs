@@ -4,11 +4,8 @@
 use std::collections::HashMap;
 
 use pyramus::models::{
-    editor::item::StageItem,
-    templates::{
-        prop::Prop,
-        prop_item::{PropItem, PropItemType},
-    },
+    editor::{item::StageItem, staging::Staging},
+    templates::prop_item::PropItemType,
 };
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
@@ -77,57 +74,26 @@ impl FrontendItem {
                 id: item.id.0,
                 name: item.name.clone(),
                 is_root: item.id == stage.base.get_root(),
-                parent: item.parent.map(|id| id.0),
-                children: item.children.iter().map(|id| id.0).collect(),
+                parent: item.get_parent().map(|id| id.0),
+                children: item.get_children().iter().map(|id| id.0).collect(),
+                position: item.get_relative_transform().position,
+                scale: item.get_relative_transform().scale,
+                rotation: item.get_relative_transform().rotation,
+
                 item_type: FrontendItemType::from(&item.item),
-                position: item.transform.position,
-                scale: item.transform.scale,
-                rotation: item.transform.rotation,
             },
             StageItem::Prop(prop) => FrontendItem {
                 id: prop.id.0,
                 name: prop.name.clone(),
                 is_root: prop.id == stage.base.get_root(),
-                parent: prop.parent.map(|id| id.0),
-                children: prop.children.iter().map(|id| id.0).collect(),
+                parent: prop.get_parent().map(|id| id.0),
+                children: prop.get_children().iter().map(|id| id.0).collect(),
+                position: item.get_relative_transform().position,
+                scale: item.get_relative_transform().scale,
+                rotation: item.get_relative_transform().rotation,
+
                 item_type: FrontendItemType::Prop,
-                position: prop.transform.position,
-                scale: prop.transform.scale,
-                rotation: prop.transform.rotation,
             },
-        }
-    }
-}
-
-// TODO: these froms maybe should be moved?
-impl From<PropItem> for FrontendItem {
-    fn from(item: PropItem) -> FrontendItem {
-        FrontendItem {
-            id: item.id.0,
-            name: item.name,
-            is_root: false,
-            parent: item.parent.map(|id| id.0),
-            children: item.children.iter().map(|id| id.0).collect(),
-            item_type: FrontendItemType::from(&item.item),
-            position: item.transform.position,
-            scale: item.transform.scale,
-            rotation: item.transform.rotation,
-        }
-    }
-}
-
-impl From<Prop> for FrontendItem {
-    fn from(item: Prop) -> FrontendItem {
-        FrontendItem {
-            id: item.id.0,
-            name: item.name,
-            is_root: false,
-            parent: item.parent.map(|id| id.0),
-            children: item.children.iter().map(|id| id.0).collect(),
-            item_type: FrontendItemType::Prop,
-            position: item.transform.position,
-            scale: item.transform.scale,
-            rotation: item.transform.rotation,
         }
     }
 }
