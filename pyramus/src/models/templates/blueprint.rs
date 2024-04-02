@@ -2,8 +2,8 @@ use js_sys::Math::random;
 use serde::{Deserialize, Serialize};
 
 use crate::models::editor::{
+    base_item::{BaseItem, BaseTemplate},
     item::StageItem,
-    staged_template::{BaseItem, BaseTemplate},
 };
 
 use super::{builder::ItemBuilder, ids::ItemId, prop::Prop};

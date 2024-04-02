@@ -7,16 +7,19 @@ use crate::models::templates::{
     transform::RelativeTransform,
 };
 
-use super::item::StageItem;
+use super::{item::StageItem, staging::Staging};
 
-// TODO: Trait-ify this as much as you can
+// TODO: Trait-ify this as much as you can. Currently BaseItem each variant has a BaseTemplate
 
+/// The base item that is being edited in the editor.
+/// Each item has a BaseTemplate that contains the items and their relationships.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum BaseItem {
     Prop(Prop),
     Blueprint(Blueprint),
 }
 
+/// The base template that contains the items that make up an object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseTemplate {
     pub items: HashMap<ItemId, StageItem>,

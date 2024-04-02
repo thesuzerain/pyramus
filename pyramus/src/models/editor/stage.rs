@@ -1,4 +1,4 @@
-use super::{item::StageItem, staged_template::BaseItem};
+use super::{base_item::BaseItem, item::StageItem};
 use crate::{
     input::MouseState,
     models::templates::{blueprint::Blueprint, ids::ItemId, prop::Prop},

@@ -1,19 +1,43 @@
+use crate::{
+    models::templates::{
+        prop::Prop,
+        prop_item::{PropItem, PropItemImage},
+    },
+    svg, PyramusError,
+};
 use glam::Affine2;
 use resvg::usvg::{self, Transform};
-use crate::{models::templates::{prop::Prop, prop_item::{PropItem, PropItemImage}}, svg, PyramusError};
 
-use super::{item::StageItem, staged_template::BaseItem};
+use super::{base_item::BaseItem, item::StageItem, staging::Staging};
 
 pub trait ToUsvgNode {
+    /// Convert the item to a usvg node
     fn to_usvg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node>;
-    fn to_outline_svg_node(&self, container_item : &BaseItem) -> crate::Result<usvg::Node>;
+    /// Convert the item to the outline of a usvg node
+    fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node>;
+}
+
+impl ToUsvgNode for StageItem {
+    fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
+        match self {
+            StageItem::PropItem(item) => item.to_usvg_node(outer_base_item),
+            StageItem::Prop(prop) => prop.to_usvg_node(outer_base_item),
+        }
+    }
+
+    fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node> {
+        match self {
+            StageItem::PropItem(item) => item.to_outline_svg_node(container_item),
+            StageItem::Prop(prop) => prop.to_outline_svg_node(container_item),
+        }
+    }
 }
 
 impl ToUsvgNode for Prop {
     // TODO: This may be able to be abstracted in the way that to_outline_svg_node is done
     fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
-        let transform = to_transform(self.transform.to_glam_affine());
+        let transform = to_transform(self.get_relative_transform().to_glam_affine());
 
         // Recursively add children to the root node
         // TODO: A slotmap may improve this, as we no longer need to hold a lock on the root node
@@ -29,7 +53,7 @@ impl ToUsvgNode for Prop {
         let mut children = vec![root.to_usvg_node(&base)?];
 
         // Children in scene other props, if any
-        for child in &self.children {
+        for child in self.get_children() {
             // simplify
             let child = outer_base_item.get_items().get(child).ok_or_else(|| {
                 PyramusError::OtherError(format!("Child prop item not found in prop: {:?}", child))
@@ -45,28 +69,28 @@ impl ToUsvgNode for Prop {
         })))
     }
 
-    fn to_outline_svg_node(&self, container_item : &BaseItem) -> crate::Result<usvg::Node> {
+    fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node> {
         let staged_item = container_item.get_item(self.id).unwrap(); // todo: shouldnt get a second one
         let bounds = staged_item.get_local_bounds();
         create_outline_svg(staged_item, container_item, bounds)
     }
 
-        // Get bounds of node
+    // Get bounds of node
 }
 
 impl ToUsvgNode for PropItem {
     fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
         crate::log!(
             "Creating prop item node, with children: {:?}",
-            self.children
+            self.get_children()
         );
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
-        let transform = to_transform(self.transform.to_glam_affine());
+        let transform = to_transform(self.get_relative_transform().to_glam_affine());
 
         // All nodes are contained in a group node, so we can apply the transform to the group node, and then apply the transform to the children nodes
         // TODO: Is this needed?
         let mut children = vec![self.item.to_usvg_node()?];
-        for child in &self.children {
+        for child in self.get_children() {
             // simplify
             let child = outer_base_item.get_items().get(child).ok_or_else(|| {
                 PyramusError::OtherError("Child item not found in stage".to_string())
@@ -81,7 +105,7 @@ impl ToUsvgNode for PropItem {
         })))
     }
 
-    fn to_outline_svg_node(&self, container_item : &BaseItem) -> crate::Result<usvg::Node> {
+    fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node> {
         let staged_item = container_item.get_item(self.id).unwrap(); // todo: shouldnt get a second one
         let bounds = staged_item.get_local_bounds();
         create_outline_svg(staged_item, container_item, bounds)
@@ -93,7 +117,11 @@ fn to_transform(transform: Affine2) -> usvg::Transform {
     usvg::Transform::from_row(cols[0], cols[1], cols[2], cols[3], cols[4], cols[5])
 }
 
-fn create_outline_svg(staged_item : &StageItem, container_item : &BaseItem, (x0, y0, x1, y1) : (f32, f32, f32, f32)) -> crate::Result<usvg::Node> {
+fn create_outline_svg(
+    staged_item: &StageItem,
+    container_item: &BaseItem,
+    (x0, y0, x1, y1): (f32, f32, f32, f32),
+) -> crate::Result<usvg::Node> {
     let outline_size = 20.0;
     // Get bounds of node
     // TODO: NEed consistency between x1x2 and xywh formats
@@ -140,4 +168,4 @@ fn create_outline_svg(staged_item : &StageItem, container_item : &BaseItem, (x0,
         children: vec![image],
         ..Default::default()
     })))
-}    
+}

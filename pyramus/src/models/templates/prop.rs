@@ -1,4 +1,7 @@
-use crate::models::editor::staged_template::{BaseItem, BaseTemplate};
+use crate::models::editor::{
+    base_item::{BaseItem, BaseTemplate},
+    staging::StagingContext,
+};
 
 use super::{builder::ItemBuilder, ids::ItemId, transform::RelativeTransform};
 use js_sys::Math::random;
@@ -13,12 +16,7 @@ pub struct Prop {
     pub name: String,
 
     pub template: BaseTemplate,
-
-    // Stageable objects (TODO: Move to a separate struct?)
-    // Within a blueprint, if applicable, or parent
-    pub parent: Option<ItemId>,
-    pub children: Vec<ItemId>,
-    pub transform: RelativeTransform,
+    pub staging: StagingContext,
 }
 
 impl Prop {
@@ -45,9 +43,7 @@ impl Prop {
             id: ItemId::new(),
             name: name.to_string(),
             template,
-            parent: None,
-            children: vec![],
-            transform: RelativeTransform::default(),
+            staging: StagingContext::new(),
         }
     }
 

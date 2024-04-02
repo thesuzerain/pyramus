@@ -1,6 +1,6 @@
 use crate::{
     models::{
-        editor::{item::StageItem, stage::Stage},
+        editor::{item::StageItem, stage::Stage, usvg_node::ToUsvgNode},
         templates::prop_item::{PropItem, PropItemType},
     },
     PyramusError,
@@ -39,7 +39,9 @@ impl Stage {
 
         // Add outlines overtop of the nodes
         for item in self.get_selections() {
-            tree.root.children.push(item.to_outline_svg_node(&self.base)?);
+            tree.root
+                .children
+                .push(item.to_outline_svg_node(&self.base)?);
         }
 
         // Postprocessing step

@@ -1,4 +1,4 @@
-use crate::models::editor::item::StageItem;
+use crate::models::editor::{item::StageItem, staging::StagingContext};
 
 use self::{prop_builder::PropTypeBuilder, prop_item_builder::PropItemTypeBuilder};
 
@@ -32,9 +32,7 @@ impl ItemBuilder {
                 let prop_item = PropItem {
                     name: self.name,
                     id: ItemId::new(),
-                    parent: self.parent,
-                    transform: self.transform,
-                    children: vec![],
+                    staging: StagingContext::new(),
                     item,
                 };
                 Ok(StageItem::PropItem(prop_item))
