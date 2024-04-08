@@ -3,6 +3,7 @@ use crate::{
     models::editor::stage::Stage,
 };
 
+/// Enum for the current state of the mouse, for tracking drag events
 #[derive(Debug)]
 pub enum MouseState {
     Idle,
@@ -31,6 +32,8 @@ impl MouseState {
     }
 }
 
+/// Enum for the different types of input events that can be processed
+/// Keyboard, mouse, etc
 #[derive(Debug)]
 pub enum InputEvent {
     MouseDown { x: f32, y: f32 },
@@ -41,6 +44,7 @@ pub enum InputEvent {
 }
 
 impl Stage {
+    /// Process an input event, and return a list of frontend commands to be executed
     pub fn process_event(&mut self, event: InputEvent) -> crate::Result<Vec<FrontendCommand>> {
         match event {
             InputEvent::MouseDown { x, y } => {
@@ -70,6 +74,7 @@ impl Stage {
     }
 }
 
+/// Handle the selection of the item found at x, y (screen coordinates)
 fn handle_selection(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<FrontendCommand>> {
     // Find item at x, y
     let item_id = stage.get_front_item_at(x, y, false);
@@ -92,6 +97,7 @@ fn handle_selection(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<Fron
     }
 }
 
+/// Handle the click of the item found at x, y (screen coordinates)
 fn handle_click(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<FrontendCommand>> {
     let item_id = stage.get_front_item_at(x, y, false);
 
@@ -104,6 +110,7 @@ fn handle_click(stage: &mut Stage, x: f32, y: f32) -> crate::Result<Vec<Frontend
     }
 }
 
+/// Handle the drag of the selected items by delta_x, delta_y
 fn handle_drag(
     stage: &mut Stage,
     delta_x: f32,

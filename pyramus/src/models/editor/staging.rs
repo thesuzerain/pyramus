@@ -7,16 +7,30 @@ use crate::models::templates::{
 use super::item::StageItem;
 
 /// A trait for items that can be placed on the stage.
+/// Used by StageItem- anything that has parents, children, and a transform.
+/// The struct 'StagingContext' is used to store these values. Anything that implements Staging should have a StagingContext field.
 /// TODO: We may want to take some of the BaseItem functions and put them here
 pub trait Staging {
+    /// Get the parent of the item in the staging context
     fn get_parent(&self) -> Option<ItemId>;
+
+    /// Set the parent of the item in the staging context
     fn set_parent(&mut self, parent: Option<ItemId>);
+
+    /// Get the children of the item in the staging context
     fn get_children(&self) -> &Vec<ItemId>;
+
+    /// Get the children of the item in the staging context, mutably
     fn get_children_mut(&mut self) -> &mut Vec<ItemId>;
+
+    /// Get the relative transform of the item in the staging context
     fn get_relative_transform(&self) -> &RelativeTransform;
+
+    /// Get the relative transform of the item in the staging context, mutably
     fn get_relative_transform_mut(&mut self) -> &mut RelativeTransform;
 }
 
+/// A struct that stores the staging information for an item, used by the Staging trait
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StagingContext {
     pub parent: Option<ItemId>,

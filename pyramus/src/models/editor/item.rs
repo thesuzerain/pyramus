@@ -13,7 +13,9 @@ pub enum StageItem {
 
 impl StageItem {
     // TODO: should we keep these as the trait functions? are these necessary alongside the trait functions?
+    // TODO: These are basically 1:1 with the trait items in some cases
 
+    /// Get the item id of the StageItem
     pub fn get_id(&self) -> ItemId {
         match self {
             StageItem::PropItem(item) => item.id,
@@ -21,6 +23,7 @@ impl StageItem {
         }
     }
 
+    /// Rename the StageItem
     pub fn rename(&mut self, name: String) {
         match self {
             StageItem::PropItem(item) => item.name = name,
@@ -28,13 +31,7 @@ impl StageItem {
         }
     }
 
-    pub fn get_parent(&self) -> Option<ItemId> {
-        match self {
-            StageItem::PropItem(item) => item.get_parent(),
-            StageItem::Prop(prop) => prop.get_parent(),
-        }
-    }
-
+    /// Set the parent of the StageItem within its BaseItem
     pub fn set_parent(&mut self, parent: Option<ItemId>) {
         match self {
             StageItem::PropItem(item) => item.set_parent(parent),
@@ -42,6 +39,7 @@ impl StageItem {
         }
     }
 
+    /// Get the local size of the StageItem
     pub fn get_size(&self) -> (u32, u32) {
         let (x0, y0, x1, x2) = match self {
             StageItem::PropItem(item) => item.get_local_bounds(),
@@ -50,20 +48,7 @@ impl StageItem {
         ((x1 - x0) as u32, (x2 - y0) as u32)
     }
 
-    pub fn get_children_mut(&mut self) -> &mut Vec<ItemId> {
-        match self {
-            StageItem::PropItem(item) => item.get_children_mut(),
-            StageItem::Prop(prop) => prop.get_children_mut(),
-        }
-    }
-
-    pub fn get_children(&self) -> &Vec<ItemId> {
-        match self {
-            StageItem::PropItem(item) => item.get_children(),
-            StageItem::Prop(prop) => prop.get_children(),
-        }
-    }
-
+    /// Get the local bounds of the item
     pub fn get_local_bounds(&self) -> (f32, f32, f32, f32) {
         match self {
             StageItem::PropItem(item) => item.get_local_bounds(),

@@ -1,6 +1,8 @@
 use js_sys::Math::random;
 use serde::{Deserialize, Serialize};
 
+/// A relative transform structure
+/// Represents a position, scale, and rotation relative to a parent
 // TODO: Is this still needed now that we have Affine2?
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RelativeTransform {

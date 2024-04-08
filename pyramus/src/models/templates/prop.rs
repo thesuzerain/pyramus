@@ -10,6 +10,8 @@ use std::collections::HashMap;
 
 // TODO: remove clone
 
+/// A prop
+/// A structure that contains one or more items, and can be reused in multiple blueprints
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Prop {
     pub id: ItemId,
@@ -26,6 +28,7 @@ impl Prop {
         (0.0, 0.0, w as f32, h as f32)
     }
 
+    /// Generate a new, empty prop  with a white translucent background
     pub fn new(name: impl ToString, width: u32, height: u32) -> Prop {
         let mut items = HashMap::new();
         let root_builder = ItemBuilder::build_image_from_rect(width, height, "white", None, 0.1);
@@ -48,6 +51,7 @@ impl Prop {
     }
 
     // TODO: Remove, this is just to generate random props for testing
+    /// Generate a new prop with a random structure
     pub fn build_random(name: impl ToString, width: u32, height: u32) -> Prop {
         let center_x = (width / 2) as i32;
         let center_y = (height / 2) as i32;

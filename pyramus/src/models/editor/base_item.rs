@@ -10,9 +10,10 @@ use crate::models::templates::{
 use super::{item::StageItem, staging::Staging};
 
 // TODO: Trait-ify this as much as you can. Currently BaseItem each variant has a BaseTemplate
+// TODO: Revisit how these fields are labelled- it's a little bit confusing. (item, inner hand, prop, etc). Ideally you shouldnt have to keep saying 'inner'
 
 /// The base item that is being edited in the editor.
-/// Each item has a BaseTemplate that contains the items and their relationships.
+/// Each item has a BaseTemplate that contains the inner items and their relationships.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum BaseItem {
     Prop(Prop),
@@ -20,6 +21,7 @@ pub enum BaseItem {
 }
 
 /// The base template that contains the items that make up an object.
+/// Used for an item with an internal structure of items.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseTemplate {
     pub items: HashMap<ItemId, StageItem>,
@@ -32,6 +34,8 @@ pub struct BaseTemplate {
 impl BaseItem {
     // TODO: Trait-ify this as much as you can.
     // A lot of stuff here can be traited- even if the whole thing can't be (due to issues with BackendCommand)
+
+    /// Get the inner BaseTemplate field of the item, mutably.
     pub fn get_template_mut(&mut self) -> &mut BaseTemplate {
         match self {
             BaseItem::Prop(prop) => &mut prop.template,
@@ -39,6 +43,7 @@ impl BaseItem {
         }
     }
 
+    /// Get the inner BaseTemplate field of the item.
     pub fn get_template(&self) -> &BaseTemplate {
         match self {
             BaseItem::Prop(prop) => &prop.template,
@@ -47,6 +52,7 @@ impl BaseItem {
     }
 
     // TODO: This pattern could be improved (taking in an Rc<RwLock> parent, rather than a reference to self)
+    /// Add a child item to the inner structure of the item.
     pub fn add_child(&mut self, item_builder: ItemBuilder) -> crate::Result<ItemId> {
         let template = self.get_template_mut();
 
@@ -70,6 +76,7 @@ impl BaseItem {
         Ok(id)
     }
 
+    /// Edit an inner item in the inner structure of the base item.
     pub fn edit_item(
         &mut self,
         id: ItemId,
@@ -86,22 +93,27 @@ impl BaseItem {
         }
     }
 
+    /// Get an inner item in the inner structure of the base item.
     pub fn get_item(&self, id: ItemId) -> Option<&StageItem> {
         self.get_template().items.get(&id)
     }
 
+    /// Get the inner items in the inner structure of the base item.
     pub fn get_items(&self) -> &HashMap<ItemId, StageItem> {
         &self.get_template().items
     }
 
+    /// Get the root item in the inner structure of the base item.
     pub fn get_root(&self) -> ItemId {
         self.get_template().root
     }
 
+    /// Get the size of the inner structure of the base item.
     pub fn get_size(&self) -> (u32, u32) {
         self.get_template().size
     }
 
+    /// Set the size of the inner structure of the base item.
     pub fn edit_item_transform(
         &mut self,
         id: ItemId,
@@ -125,6 +137,7 @@ impl BaseItem {
         }
     }
 
+    /// Remove an inner item in the inner structure of the base item.
     pub fn remove_item(&mut self, id: ItemId) -> crate::Result<()> {
         let template = self.get_template_mut();
         // TODO: Revisit this function after blueprint refactor- move to prop?

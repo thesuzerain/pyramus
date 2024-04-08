@@ -1,4 +1,4 @@
-use super::{base_item::BaseItem, item::StageItem};
+use super::{base_item::BaseItem, item::StageItem, staging::Staging};
 use crate::{
     input::MouseState,
     models::templates::{blueprint::Blueprint, ids::ItemId, prop::Prop},
@@ -24,6 +24,7 @@ impl Stage {
     // TODO: Background color should be optional, or a pattern (like how Photoshop does transparency)
 
     // TODO: This should become trait again, with one build()
+    /// Create a new stage with a prop as the base item
     pub fn build_prop(base: Prop) -> Stage {
         Stage {
             base: BaseItem::Prop(base),
@@ -32,6 +33,7 @@ impl Stage {
         }
     }
 
+    /// Create a new stage with a blueprint as the base item
     pub fn build_blueprint(base: Blueprint) -> Stage {
         Stage {
             base: BaseItem::Blueprint(base),
@@ -40,10 +42,12 @@ impl Stage {
         }
     }
 
+    /// Sets selected items in the stage
     pub fn set_selection(&mut self, selection: Vec<ItemId>) {
         self.selection = selection;
     }
 
+    /// Get the selected items in the stage, mutably
     pub fn get_selections_mut(&mut self) -> Vec<&StageItem> {
         // TODO: Revisit this function after blueprint refactor- move to prop?
         self.selection
@@ -52,6 +56,7 @@ impl Stage {
             .collect()
     }
 
+    /// Get the selected items in the stage
     pub fn get_selections(&self) -> Vec<&StageItem> {
         // TODO: Revisit this function after blueprint refactor- move to prop?
         self.selection
@@ -60,6 +65,8 @@ impl Stage {
             .collect()
     }
 
+    /// Get the front-most item at the given x,y (in screen coordinates)
+    /// None if no item is found
     pub fn get_front_item_at(&self, x: f32, y: f32, include_root: bool) -> Option<ItemId> {
         // TODO: We need to add Z-index (render order) support, which will affect how this selects items
         // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker
@@ -78,6 +85,7 @@ impl Stage {
         None
     }
 
+    /// Get the render order of the items in the stage
     pub fn get_render_order(&self) -> Vec<ItemId> {
         // TODO: We need to add Z-index (render order) support, which will affect how this selects items
         // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker

@@ -5,24 +5,33 @@ use crate::models::{
     templates::{builder::ItemBuilder, ids::ItemId, transform::RelativeTransform},
 };
 
+/// A command that can be sent from the frontend to the backend, to
+/// trigger some kind of change in the editor state.
 pub enum BackendCommand {
     // TODO: Is there a way we can fuse these without giving BackendCommand a generic?
     // Adding the generic causes problems with the WASM layer holding a dyn Stage
+    /// Create an item in the stage
     CreateItem { new_item: ItemBuilder },
 
-    // Selection
+    /// Change the list of selected items
     SetSelection(Vec<ItemId>),
 
     // TODO: Should this be EditTransform?
+    /// Translate a group of items in a direction (x,y)
     TranslateGroup(Vec<ItemId>, (f32, f32)),
 
-    // Item Editing
+    /// Change the transform of an item to provided RelativeTransform
     EditTransform(ItemId, RelativeTransform),
+
+    /// Rename an item
     RenameItem(ItemId, String),
+
+    /// Delete an item
     DeleteItem(ItemId),
 }
 
 impl Stage {
+    /// Process a command from the frontend, and return a list of FrontendCommands to be executed in response.
     pub fn process_command(
         &mut self,
         command: BackendCommand,

@@ -14,10 +14,12 @@ use super::{BuilderType, ItemBuilder};
 
 // TODO I don't like these being in ItemBuilder
 impl ItemBuilder {
+    /// Creates an ItemBuilder with a basic text item (12pt Arial, black, not italicized)
     pub fn build_text_basic(text: impl ToString) -> ItemBuilder {
         Self::build_text(text, "Arial".to_string(), 12.0, (0, 0, 0), false)
     }
 
+    /// Creates an ItemBuilder with a text item
     pub fn build_text(
         text: impl ToString,
         font_family: String,
@@ -39,6 +41,7 @@ impl ItemBuilder {
         }
     }
 
+    /// Creates an ItemBuilder with an image item from an SVG string
     pub fn build_image_from_svg(svg: String) -> ItemBuilder {
         ItemBuilder {
             name: "image".to_string(),
@@ -48,6 +51,7 @@ impl ItemBuilder {
         }
     }
 
+    /// Creates an ItemBuilder with an image item from bytes
     pub fn build_image_from_bytes(bytes: Vec<u8>, ext: impl ToString) -> ItemBuilder {
         ItemBuilder {
             name: "image".to_string(),
@@ -60,9 +64,9 @@ impl ItemBuilder {
         }
     }
 
-    // Creates a simple SVG tree with a rectangle
+    /// Creates a simple SVG tree with a rectangle
     // TODO: This is for testing purposes only
-    // Alpha is a value between 0.0 and 1.0
+    /// Alpha is a value between 0.0 and 1.0
     pub fn build_image_from_rect(
         w: u32,
         h: u32,
@@ -73,22 +77,26 @@ impl ItemBuilder {
         ItemBuilder::build_image_from_svg(svg::build_svg_rect(w, h, color, stroke, alpha))
     }
 
+    /// Adds a parent to the ItemBuilder
     pub fn parent(mut self, parent: ItemId) -> Self {
         self.parent = Some(parent);
         self
     }
 
+    /// Adds a transform to the ItemBuilder
     pub fn transform(mut self, transform: RelativeTransform) -> Self {
         self.transform = transform;
         self
     }
 
+    /// Adds a name to the ItemBuilder
     pub fn name(mut self, name: impl ToString) -> Self {
         self.name = name.to_string();
         self
     }
 }
 
+/// Builder for creating a prop item
 #[derive(Debug)]
 pub enum PropItemTypeBuilder {
     Text {
@@ -138,6 +146,7 @@ impl PropItemTypeBuilder {
 }
 
 impl PropItemImage {
+    /// Create a PropItemImage from bytes (guessing the format from the extension)
     pub fn from_bytes(
         bytes: Vec<u8>,
         ext: &str, // TODO: Might not need this with with_guessed_format
@@ -179,6 +188,7 @@ impl PropItemImage {
         }))
     }
 
+    /// Create a PropItemImage from an SVG string
     pub fn from_svg_string(svg: &str) -> Result<PropItemImage, usvg::Error> {
         let tree = resvg::usvg::Tree::from_str(svg, &resvg::usvg::Options::default())?;
         let tree_height = tree.size.height();
@@ -193,6 +203,7 @@ impl PropItemImage {
 
 impl PropItemText {
     // TODO: 'Builder' pattern
+    /// Finish building the PropItemText
     pub fn build(text: String) -> PropItemText {
         PropItemText {
             text,

@@ -6,22 +6,28 @@ use crate::models::editor::{
     item::StageItem,
 };
 
-use super::{builder::ItemBuilder, ids::ItemId, prop::Prop};
+use super::{builder::ItemBuilder, prop::Prop};
 use std::collections::HashMap;
 
+/// A blueprint
+/// A structure that contains one or more props, easily modifable to fit a variety of contexts
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Blueprint {
     pub name: String,
-    pub root: ItemId,
-    pub size: (u32, u32), // TODO: Should this crop to the total bounds of the items?
 
+    /// BaseTemplate so we can implement BaseItem
     pub template: BaseTemplate,
 }
 
 impl Blueprint {
     // x0, y0, x1, y1
     pub fn get_local_bounds(&self) -> (f32, f32, f32, f32) {
-        (0.0, 0.0, self.size.0 as f32, self.size.1 as f32)
+        (
+            0.0,
+            0.0,
+            self.template.size.0 as f32,
+            self.template.size.1 as f32,
+        )
     }
 
     pub fn build_random(name: impl ToString, width: u32, height: u32) -> Blueprint {
@@ -34,8 +40,6 @@ impl Blueprint {
         // Todo: is this the way to do?
         let mut blueprint = BaseItem::Blueprint(Blueprint {
             name: name.to_string(),
-            root: id,
-            size: (width, height),
             template: BaseTemplate {
                 items,
                 root: id,

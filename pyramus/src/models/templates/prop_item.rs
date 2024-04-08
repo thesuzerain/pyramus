@@ -1,12 +1,10 @@
-use std::{rc::Rc, sync::Arc};
-
+use super::ids::ItemId;
+use crate::models::editor::staging::StagingContext;
 use resvg::usvg::{self, NonZeroPositiveF32};
 use serde::{Deserialize, Serialize};
+use std::{rc::Rc, sync::Arc};
 
-use crate::models::editor::staging::StagingContext;
-
-use super::ids::ItemId;
-
+/// A prop item that can be placed on the stage
 #[derive(Debug, Clone, Serialize, Deserialize)] // TODO: remove clone
 pub struct PropItem {
     pub id: ItemId,
@@ -29,6 +27,7 @@ impl PropItem {
     }
 }
 
+/// A prop item type
 #[derive(Debug, Clone, Serialize, Deserialize)] // TODO: remove clone
 pub enum PropItemType {
     Image(PropItemImage),

@@ -7,6 +7,7 @@ use super::{ids::ItemId, prop_item::PropItem, transform::RelativeTransform};
 pub mod prop_builder;
 pub mod prop_item_builder;
 
+/// Builder for creating a new item
 #[derive(Debug)]
 pub struct ItemBuilder {
     pub name: String,
@@ -24,6 +25,7 @@ pub enum BuilderType {
 }
 
 impl ItemBuilder {
+    /// Finish and build the item
     pub fn build(self) -> crate::Result<StageItem> {
         match self.builder {
             BuilderType::PropItem(item) => {

@@ -11,6 +11,9 @@ use resvg::usvg::{self, Font, FontStyle, TextSpan, Transform, XmlOptions};
 use usvg::fontdb;
 
 impl Stage {
+    /// Converts all items on the stage into a usvg tree
+    /// This is the main function for rendering the stage
+    /// All items on the stage are converted into usvg nodes recursively
     pub fn to_usvg_tree(&self) -> crate::Result<usvg::Tree> {
         let width = self.base.get_size().0 as f32;
         let height = self.base.get_size().1 as f32;
@@ -169,6 +172,7 @@ impl PropItemType {
     }
 }
 
+/// Render the stage to a string, by convering to a usvg tree and then to a svg string
 pub fn render_string(stage: &Stage) -> crate::Result<String> {
     let tree = stage.to_usvg_tree()?;
     let s = tree.to_string(&XmlOptions::default());

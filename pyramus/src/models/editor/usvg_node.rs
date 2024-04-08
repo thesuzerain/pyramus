@@ -10,10 +10,11 @@ use resvg::usvg::{self, Transform};
 
 use super::{base_item::BaseItem, item::StageItem, staging::Staging};
 
+/// Trait for converting items to usvg nodes
 pub trait ToUsvgNode {
     /// Convert the item to a usvg node
     fn to_usvg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node>;
-    /// Convert the item to the outline of a usvg node
+    /// Convert the item to the outline of a usvg node (for example, for displaying selection)
     fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node>;
 }
 

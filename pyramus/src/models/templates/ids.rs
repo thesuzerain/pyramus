@@ -1,6 +1,8 @@
 use js_sys::Math::random;
 use serde::{Deserialize, Serialize};
 
+/// ItemId is a unique identifier for an item within any context.
+/// TODO: Checks to ensure uniqueness
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct ItemId(pub u32);
