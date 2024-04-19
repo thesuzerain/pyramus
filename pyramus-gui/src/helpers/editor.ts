@@ -7,10 +7,15 @@ import {
   renameObject,
   selectObjects,
   type FrontendStage,
+  getStageJson,
 } from '@/../wasm/pkg/pyramus_wasm.js'
 
 export function testRenderString() {
   return testRenderStringResvg() // TODO: should this take an argument?
+}
+
+export function testJsonString() {
+  return getStageJson()
 }
 
 export function getStageObject(): FrontendStage {

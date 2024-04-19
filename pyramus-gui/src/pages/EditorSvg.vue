@@ -9,6 +9,7 @@ import ItemEditor from '@/components/ui/ItemEditor.vue'
 import TreeSelector from '@/components/ui/TreeSelector.vue'
 import ItemWindow from '@/components/ui/ItemWindow.vue'
 import ItemCreatorModal from '@/components/ui/ItemCreatorModal.vue'
+import StageSaveModal from '@/components/ui/StageSaveModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -46,6 +47,7 @@ watch(
 console.log('EditorSvg', route.params)
 
 const itemCreatorModal = ref<typeof ItemCreatorModal | undefined>(undefined)
+const stageSaveModal = ref<typeof StageSaveModal | undefined>(undefined)
 
 const selectedItem = computed(() => {
   const selectedIds = stageObject.value.selected
@@ -82,10 +84,12 @@ subscribe('UpdateStage', async () => {
           <TreeSelector :items="stageObject.items" :selected-item-id="selectedItem?.id" />
         </div>
         <button @click="itemCreatorModal?.show(rootItem)">Create item</button>
+        <button @click="stageSaveModal?.show(stageObject)">Save stage</button>
       </div>
     </div>
   </div>
   <ItemCreatorModal ref="itemCreatorModal" />
+  <StageSaveModal ref="stageSaveModal" />
 </template>
 
 <style lang="scss" scoped>
