@@ -78,3 +78,19 @@ pub fn test_string() -> String {
 pub fn wasm_memory() -> JsValue {
     wasm_bindgen::memory()
 }
+
+#[wasm_bindgen(js_name = getStageJson)]
+pub fn get_stage_json() -> Result<String, JsValue> {
+    RUNTIME.with(|runtime| {
+        let runtime = runtime.borrow();
+        let runtime = runtime
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str("No runtime found"))?;
+        let base_item = &runtime.stage.base;
+        // TODO: This creates some huge JSON strings for images, so we need to cache those somehow.
+        // (Perhaps online- or in browser cache?)
+        let stage_json =
+            serde_json::to_string(base_item).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        Ok(stage_json)
+    })
+}
