@@ -2,7 +2,7 @@
 import { useRoute, useRouter } from 'vue-router'
 import { computed, ref, watch } from 'vue'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
-import { switchToPropEditor, switchToBlueprintEditor } from '@/helpers/state'
+import { switchEditor } from '@/helpers/state'
 import { getStageObject } from '@/helpers/editor'
 import { subscribe } from '@/helpers/messages'
 import ItemEditor from '@/components/ui/ItemEditor.vue'
@@ -21,30 +21,31 @@ breadcrumbs.setContext({ name: 'EditorSvg', link: route.path })
 
 // Set the editor on page load
 // TODO: any
-const loadEditor = (type: any) => {
-  if (type === 'prop') {
-    switchToPropEditor()
-  } else if (type === 'blueprint') {
-    switchToBlueprintEditor()
-  } else {
-    // Return to /
-    router.push('/')
-    return
+// TODO: Probably doesn't need to separate editors here- id can be used to determine the type
+const loadEditor = (id : any) => {
+  if (!id) {
+    console.error('Invalid id provided:', id);
+    router.push('/');  // Redirect to home if parameters are invalid
+    return;
   }
-}
+  try {
+    switchEditor(id)
+  } catch (e) {
+    console.error('Failed to load editor:', e)
+    router.push('/');  // Redirect to home if editor fails to load
+  }
+};
 
 // Call the function immediately on setup for initialization
-loadEditor(route.params.type)
+loadEditor(route.params.id)
 
-// Setup a watcher that reacts whenever the `type` route parameter changes
+// Setup a watcher that reacts whenever the `id` route parameter changes
 watch(
-  () => route.params.type,
-  (newType) => {
-    loadEditor(newType)
-  }
+  () => route.params.id,
+  (newId) => {
+    loadEditor(newId)
+  },
 )
-
-console.log('EditorSvg', route.params)
 
 const itemCreatorModal = ref<typeof ItemCreatorModal | undefined>(undefined)
 const stageSaveModal = ref<typeof StageSaveModal | undefined>(undefined)

@@ -1,4 +1,4 @@
-use super::ids::ItemId;
+use super::ids::InternalId;
 use crate::models::editor::staging::StagingContext;
 use resvg::usvg::{self, NonZeroPositiveF32};
 use serde::{Deserialize, Serialize};
@@ -7,7 +7,7 @@ use std::{rc::Rc, sync::Arc};
 /// A prop item that can be placed on the stage
 #[derive(Debug, Clone, Serialize, Deserialize)] // TODO: remove clone
 pub struct PropItem {
-    pub id: ItemId,
+    pub id: InternalId,
     pub name: String,
     pub item: PropItemType,
 
@@ -102,13 +102,16 @@ where
     data.serialize(serializer)
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)] // TODO: remove clone
+// TODO: remove clone
+#[derive(Debug, Clone, Serialize, Deserialize)] 
 pub struct PropItemImage {
     pub data: PropItemImageData,
     pub viewport_width: f32,
     pub viewport_height: f32,
 }
 
+// TODO: This cannot be directly serializable. It serializes every byte of the image
+// TODO: Create a caching folder and system for using images
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PropItemImageData {
     Png(Arc<Vec<u8>>),

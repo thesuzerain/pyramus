@@ -20,7 +20,7 @@ const props = defineProps({
     type: Object as PropType<Record<number, FrontendItem>>,
     default: null,
   },
-  selectedItemId: {
+  selectedInternalId: {
     type: Number,
     default: null,
   },
@@ -35,8 +35,8 @@ type FlatItem = {
   item: FrontendItem
 }
 
-function flatList(itemId: number, indent: number): FlatItem[] {
-  const item = props.items[itemId]
+function flatList(InternalId: number, indent: number): FlatItem[] {
+  const item = props.items[InternalId]
   const thisItem = { indent, item }
   if (item.children.length == 0) {
     return [thisItem]

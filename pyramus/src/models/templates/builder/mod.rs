@@ -2,7 +2,7 @@ use crate::models::editor::{item::StageItem, staging::StagingContext};
 
 use self::{prop_builder::PropTypeBuilder, prop_item_builder::PropItemTypeBuilder};
 
-use super::{ids::ItemId, prop_item::PropItem, transform::RelativeTransform};
+use super::{ids::InternalId, prop_item::PropItem, transform::RelativeTransform};
 
 pub mod prop_builder;
 pub mod prop_item_builder;
@@ -14,7 +14,7 @@ pub struct ItemBuilder {
 
     pub builder: BuilderType,
 
-    pub parent: Option<ItemId>,
+    pub parent: Option<InternalId>,
     pub transform: RelativeTransform,
 }
 
@@ -33,7 +33,7 @@ impl ItemBuilder {
                 // TODO: remove from here
                 let prop_item = PropItem {
                     name: self.name,
-                    id: ItemId::new(),
+                    id: InternalId::new(),
                     staging: StagingContext::new(),
                     item,
                 };

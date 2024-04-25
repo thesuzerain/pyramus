@@ -1,7 +1,5 @@
 use pyramus::{
-    command::{BackendCommand, FrontendCommand},
-    models::editor::stage::{example_stage_blueprint, example_stage_prop, Stage},
-    PyramusError,
+    cache::Cache, command::{BackendCommand, FrontendCommand}, models::{editor::stage::{example_stage_prop, Stage}, templates::ids::PyramusId}, PyramusError
 };
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use wasm_bindgen::{JsError, JsValue};
@@ -18,35 +16,42 @@ thread_local! {
 
 pub struct Runtime {
     pub stage: Stage, // TODO: Enum to put on stack?
-}
 
-impl Default for Runtime {
-    fn default() -> Self {
-        Self::new()
-    }
+    // TODO: Should this be hosted on the js side? Or even further in rust?
+    pub cache : Cache,
 }
 
 impl Runtime {
-    pub fn new() -> Runtime {
+    pub async fn start() -> Runtime {
+        let mut cache = Cache::new();
+        cache.fetch().await;
         Runtime {
             stage: example_stage_prop()
                 .inspect_err(|e| pyramus::log!("Err: {e}"))
                 .unwrap(),
+            cache
         }
     }
 
-    pub fn set_prop(&mut self) {
-        self.stage = example_stage_prop()
-            .inspect_err(|e| pyramus::log!("Err: {e}"))
-            .unwrap();
-        pyramus::log!("Set prop");
+    pub fn new_base_prop(&mut self) -> Result<(), PyramusError> {
+        // TODO: This should become a call to the server. (Or a different function here entirely)
+        let id = PyramusId::debug_new();
+
+        let stage = example_stage_prop()
+            .inspect_err(|e| pyramus::log!("Err: {e}"))?;
+        // TODO: See 'TODO' in set_base
+        self.cache.insert_base(id, stage.base.clone());
+
+        self.stage = stage; 
+        Ok(())
     }
 
-    pub fn set_blueprint(&mut self) {
-        self.stage = example_stage_blueprint()
-            .inspect_err(|e| pyramus::log!("Err: {e}"))
-            .unwrap();
-        pyramus::log!("Set blueprint");
+    pub fn set_base(&mut self, id: PyramusId) -> Result<(), PyramusError> {
+        let prop = self.cache.get_base(id).ok_or_else(|| PyramusError::JsValue("No cached base found".to_string()))?;
+        
+        // TODO: Perhaps this shouldn't clone, and should be a reference to the value in the cache (which could act as an arena)
+        self.stage = Stage::new(prop.clone());
+        Ok(())
     }
 
     pub fn command(

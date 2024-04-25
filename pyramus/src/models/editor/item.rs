@@ -1,5 +1,5 @@
-use super::{base_item::BaseItem, staging::Staging};
-use crate::models::templates::{ids::ItemId, prop::Prop, prop_item::PropItem};
+use super::{base_item::Base, staging::Staging};
+use crate::models::templates::{ids::InternalId, prop::Prop, prop_item::PropItem};
 use glam::Vec2;
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +16,7 @@ impl StageItem {
     // TODO: These are basically 1:1 with the trait items in some cases
 
     /// Get the item id of the StageItem
-    pub fn get_id(&self) -> ItemId {
+    pub fn get_id(&self) -> InternalId {
         match self {
             StageItem::PropItem(item) => item.id,
             StageItem::Prop(prop) => prop.id,
@@ -32,7 +32,7 @@ impl StageItem {
     }
 
     /// Set the parent of the StageItem within its BaseItem
-    pub fn set_parent(&mut self, parent: Option<ItemId>) {
+    pub fn set_parent(&mut self, parent: Option<InternalId>) {
         match self {
             StageItem::PropItem(item) => item.set_parent(parent),
             StageItem::Prop(prop) => prop.set_parent(parent),
@@ -57,9 +57,9 @@ impl StageItem {
     }
 
     /// Check if a point in screen space is within the bounds of the item
-    pub fn contains_point(&self, x: f32, y: f32, container_item: &BaseItem) -> bool {
+    pub fn contains_point(&self, x: f32, y: f32, base: &Base) -> bool {
         // Get transform of current item
-        let transform = self.get_screen_transform(container_item);
+        let transform = self.get_screen_transform(base);
 
         // Get the click in local space and check if it's within the bounds of the item
         let click = transform.inverse().transform_point2(glam::Vec2::new(x, y));
@@ -69,10 +69,10 @@ impl StageItem {
 
     /// Get the bounds of the item in screen space
     /// x0, y0, x1, y1
-    pub fn get_bounds(&self, container_item: &BaseItem) -> (f32, f32, f32, f32) {
+    pub fn get_bounds(&self, base: &Base) -> (f32, f32, f32, f32) {
         let (x0, y0, x1, y1) = self.get_local_bounds();
 
-        let transform = self.get_screen_transform(container_item);
+        let transform = self.get_screen_transform(base);
         let Vec2 { x: x0, y: y0 } = transform.transform_point2(glam::Vec2::new(x0, y0));
         let Vec2 { x: x1, y: y1 } = transform.transform_point2(glam::Vec2::new(x1, y1));
 
@@ -85,14 +85,14 @@ impl StageItem {
     }
 
     /// Get the transform of the item in screen space of a container item
-    pub fn get_screen_transform(&self, container_item: &BaseItem) -> glam::Affine2 {
+    pub fn get_screen_transform(&self, base: &Base) -> glam::Affine2 {
         // TODO: If we add 3d, this needs a projection matrix/camera and world space as an intermediate step
         let transform = self.get_relative_transform().to_glam_affine();
         if let Some(parent_id) = self.get_parent() {
-            let parent_item = container_item
+            let parent_item = base
                 .get_item(parent_id)
                 .expect("Parent item not found");
-            parent_item.get_screen_transform(container_item) * transform
+            parent_item.get_screen_transform(base) * transform
         } else {
             transform
         }

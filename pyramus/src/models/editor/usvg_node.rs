@@ -8,35 +8,35 @@ use crate::{
 use glam::Affine2;
 use resvg::usvg::{self, Transform};
 
-use super::{base_item::BaseItem, item::StageItem, staging::Staging};
+use super::{base_item::Base, item::StageItem, staging::Staging};
 
 /// Trait for converting items to usvg nodes
 pub trait ToUsvgNode {
     /// Convert the item to a usvg node
-    fn to_usvg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node>;
+    fn to_usvg_node(&self, base: &Base) -> crate::Result<usvg::Node>;
     /// Convert the item to the outline of a usvg node (for example, for displaying selection)
-    fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node>;
+    fn to_outline_svg_node(&self, base: &Base) -> crate::Result<usvg::Node>;
 }
 
 impl ToUsvgNode for StageItem {
-    fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
+    fn to_usvg_node(&self, outer_base_item: &Base) -> crate::Result<usvg::Node> {
         match self {
             StageItem::PropItem(item) => item.to_usvg_node(outer_base_item),
             StageItem::Prop(prop) => prop.to_usvg_node(outer_base_item),
         }
     }
 
-    fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node> {
+    fn to_outline_svg_node(&self, base: &Base) -> crate::Result<usvg::Node> {
         match self {
-            StageItem::PropItem(item) => item.to_outline_svg_node(container_item),
-            StageItem::Prop(prop) => prop.to_outline_svg_node(container_item),
+            StageItem::PropItem(item) => item.to_outline_svg_node(base),
+            StageItem::Prop(prop) => prop.to_outline_svg_node(base),
         }
     }
 }
 
 impl ToUsvgNode for Prop {
     // TODO: This may be able to be abstracted in the way that to_outline_svg_node is done
-    fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
+    fn to_usvg_node(&self, outer_base_item: &Base) -> crate::Result<usvg::Node> {
         // TODO: Transforming is not done yet- doesnt inheret from parents, and also scaling seems to move the object
         let transform = to_transform(self.get_relative_transform().to_glam_affine());
 
@@ -50,7 +50,7 @@ impl ToUsvgNode for Prop {
         // Create object- recursive, creates propitems within props
         // We use this as our base item for the internal prop item recursion
         // TODO: no clone, use reference, traits
-        let base = BaseItem::Prop(self.clone());
+        let base = Base::new(self.clone().into());
         let mut children = vec![root.to_usvg_node(&base)?];
 
         // Children in scene other props, if any
@@ -70,17 +70,17 @@ impl ToUsvgNode for Prop {
         })))
     }
 
-    fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node> {
-        let staged_item = container_item.get_item(self.id).unwrap(); // todo: shouldnt get a second one
+    fn to_outline_svg_node(&self, base: &Base) -> crate::Result<usvg::Node> {
+        let staged_item = base.get_item(self.id).unwrap(); // todo: shouldnt get a second one
         let bounds = staged_item.get_local_bounds();
-        create_outline_svg(staged_item, container_item, bounds)
+        create_outline_svg(staged_item, base, bounds)
     }
 
     // Get bounds of node
 }
 
 impl ToUsvgNode for PropItem {
-    fn to_usvg_node(&self, outer_base_item: &BaseItem) -> crate::Result<usvg::Node> {
+    fn to_usvg_node(&self, outer_base_item: &Base) -> crate::Result<usvg::Node> {
         crate::log!(
             "Creating prop item node, with children: {:?}",
             self.get_children()
@@ -106,10 +106,10 @@ impl ToUsvgNode for PropItem {
         })))
     }
 
-    fn to_outline_svg_node(&self, container_item: &BaseItem) -> crate::Result<usvg::Node> {
-        let staged_item = container_item.get_item(self.id).unwrap(); // todo: shouldnt get a second one
+    fn to_outline_svg_node(&self, base: &Base) -> crate::Result<usvg::Node> {
+        let staged_item = base.get_item(self.id).unwrap(); // todo: shouldnt get a second one
         let bounds = staged_item.get_local_bounds();
-        create_outline_svg(staged_item, container_item, bounds)
+        create_outline_svg(staged_item, base, bounds)
     }
 }
 
@@ -120,7 +120,7 @@ fn to_transform(transform: Affine2) -> usvg::Transform {
 
 fn create_outline_svg(
     staged_item: &StageItem,
-    container_item: &BaseItem,
+    base: &Base,
     (x0, y0, x1, y1): (f32, f32, f32, f32),
 ) -> crate::Result<usvg::Node> {
     let outline_size = 20.0;
@@ -128,7 +128,7 @@ fn create_outline_svg(
     // TODO: NEed consistency between x1x2 and xywh formats
 
     // TODO: This is terrible, and should be done via traits
-    let transform = to_transform(staged_item.get_screen_transform(container_item));
+    let transform = to_transform(staged_item.get_screen_transform(base));
 
     let x0 = x0 - outline_size;
     let y0 = y0 - outline_size;

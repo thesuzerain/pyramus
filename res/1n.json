@@ -1,0 +1,131 @@
+{
+    "item": {
+        "Prop": {
+            "id": 2925005092,
+            "name": "Test",
+            "template": {
+                "items": {
+                    "1797196509": {
+                        "PropItem": {
+                            "id": 1797196509,
+                            "name": "Rectangle",
+                            "item": {
+                                "Image": {
+                                    "data": {
+                                        "Svg": "<svg width=\"172\" height=\"169\" viewBox=\"0 0 172 169\" xmlns=\"http://www.w3.org/2000/svg\">\n    <defs/>\n    <path fill=\"#0000ff\" fill-opacity=\"0.5\" stroke=\"none\" d=\"M 0 0 L 172 0 L 172 169 L 0 169 Z\"/>\n</svg>\n"
+                                    },
+                                    "viewport_width": 172.0,
+                                    "viewport_height": 169.0
+                                }
+                            },
+                            "staging": {
+                                "parent": null,
+                                "children": [],
+                                "transform": {
+                                    "position": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "rotation": 0.0
+                                }
+                            }
+                        }
+                    },
+                    "994355459": {
+                        "PropItem": {
+                            "id": 994355459,
+                            "name": "Text",
+                            "item": {
+                                "Text": {
+                                    "text": "Hello, world!",
+                                    "font_family": "Arial",
+                                    "font_size": 12.0,
+                                    "color": [
+                                        0,
+                                        0,
+                                        0
+                                    ],
+                                    "italic": false
+                                }
+                            },
+                            "staging": {
+                                "parent": null,
+                                "children": [],
+                                "transform": {
+                                    "position": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "rotation": 0.0
+                                }
+                            }
+                        }
+                    },
+                    "394570207": {
+                        "PropItem": {
+                            "id": 394570207,
+                            "name": "image",
+                            "item": {
+                                "Image": {
+                                    "data": {
+                                        "Svg": "<svg width=\"800\" height=\"600\" viewBox=\"0 0 800 600\" xmlns=\"http://www.w3.org/2000/svg\">\n    <defs/>\n    <path fill=\"#ffffff\" fill-opacity=\"0.1\" stroke=\"none\" d=\"M 0 0 L 800 0 L 800 600 L 0 600 Z\"/>\n</svg>\n"
+                                    },
+                                    "viewport_width": 800.0,
+                                    "viewport_height": 600.0
+                                }
+                            },
+                            "staging": {
+                                "parent": null,
+                                "children": [
+                                    1797196509
+                                ],
+                                "transform": {
+                                    "position": [
+                                        0.0,
+                                        0.0
+                                    ],
+                                    "scale": [
+                                        1.0,
+                                        1.0
+                                    ],
+                                    "rotation": 0.0
+                                }
+                            }
+                        }
+                    }
+                },
+                "size": [
+                    800,
+                    600
+                ],
+                "root": 394570207
+            },
+            "staging": {
+                "parent": null,
+                "children": [],
+                "transform": {
+                    "position": [
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0
+                    ],
+                    "rotation": 0.0
+                }
+            }
+        }
+    },
+    "author": "Unknown",
+    "created_at": "Unknown",
+    "updated_at": "Unknown"
+}

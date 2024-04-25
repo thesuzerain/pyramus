@@ -1,9 +1,9 @@
 use crate::models::editor::{
-    base_item::{BaseItem, BaseTemplate},
+    base_item::{Base, BaseItem, BaseTemplate},
     staging::StagingContext,
 };
 
-use super::{builder::ItemBuilder, ids::ItemId, transform::RelativeTransform};
+use super::{builder::ItemBuilder, ids::InternalId, transform::RelativeTransform};
 use js_sys::Math::random;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -14,7 +14,7 @@ use std::collections::HashMap;
 /// A structure that contains one or more items, and can be reused in multiple blueprints
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Prop {
-    pub id: ItemId,
+    pub id: InternalId,
     pub name: String,
 
     pub template: BaseTemplate,
@@ -43,7 +43,7 @@ impl Prop {
         };
 
         Prop {
-            id: ItemId::new(),
+            id: InternalId::new(),
             name: name.to_string(),
             template,
             staging: StagingContext::new(),
@@ -58,7 +58,7 @@ impl Prop {
 
         // TODO: commentate
         let prop = Prop::new(name, width, height);
-        let mut prop = BaseItem::Prop(prop);
+        let mut prop = Base::new(prop.into());
         // building a "new object"" so we use a baseitem as if it were in a stage
 
         // Add a randomly sized translucent rectangle as the background
@@ -82,7 +82,7 @@ impl Prop {
         let image = prop
             .add_child(
                 ItemBuilder::build_image_from_bytes(
-                    include_bytes!("../../../../testimg.jpg").to_vec(),
+                    include_bytes!("../../../../res/testimg.jpg").to_vec(),
                     "jpg",
                 )
                 .parent(rect)
@@ -101,8 +101,8 @@ impl Prop {
         .unwrap(); // TODO: Handle error
 
         // Extract
-
-        if let BaseItem::Prop(prop) = prop {
+        // TODO: This is... hacky. Maybe .add_child can be put on prop directly?
+        if let BaseItem::Prop(prop) = prop.item {
             prop
         } else {
             panic!("Failed to extract prop") // TODO: Handle error, or refactor
