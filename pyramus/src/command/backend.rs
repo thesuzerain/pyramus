@@ -2,7 +2,7 @@ use super::FrontendCommand;
 
 use crate::models::{
     editor::stage::Stage,
-    templates::{builder::ItemBuilder, ids::ItemId, transform::RelativeTransform},
+    templates::{builder::ItemBuilder, ids::InternalId, transform::RelativeTransform},
 };
 
 /// A command that can be sent from the frontend to the backend, to
@@ -14,20 +14,20 @@ pub enum BackendCommand {
     CreateItem { new_item: ItemBuilder },
 
     /// Change the list of selected items
-    SetSelection(Vec<ItemId>),
+    SetSelection(Vec<InternalId>),
 
     // TODO: Should this be EditTransform?
     /// Translate a group of items in a direction (x,y)
-    TranslateGroup(Vec<ItemId>, (f32, f32)),
+    TranslateGroup(Vec<InternalId>, (f32, f32)),
 
     /// Change the transform of an item to provided RelativeTransform
-    EditTransform(ItemId, RelativeTransform),
+    EditTransform(InternalId, RelativeTransform),
 
     /// Rename an item
-    RenameItem(ItemId, String),
+    RenameItem(InternalId, String),
 
     /// Delete an item
-    DeleteItem(ItemId),
+    DeleteItem(InternalId),
 }
 
 impl Stage {
@@ -67,6 +67,7 @@ impl Stage {
             }
             BackendCommand::TranslateGroup(item_ids, (x, y)) => {
                 for item_id in item_ids {
+                    // TODO: This pattern of going from stage -> base -> item -> function call is quite common. Might be a smell
                     self.base.edit_item_transform(item_id, |t| {
                         t.position.0 += x;
                         t.position.1 += y;

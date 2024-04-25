@@ -4,7 +4,7 @@ use crate::{
 };
 use pyramus::{
     command::BackendCommand,
-    models::templates::{ids::ItemId, transform::RelativeTransform},
+    models::templates::{ids::InternalId, transform::RelativeTransform},
 };
 use wasm_bindgen::prelude::*;
 
@@ -13,21 +13,21 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen(js_name = removeObject)]
 // TODO: should we have a way this can directly return an error?
 pub fn remove_object(item_id: u32) -> Result<(), JsError> {
-    command(vec![BackendCommand::DeleteItem(ItemId(item_id))])?;
+    command(vec![BackendCommand::DeleteItem(InternalId(item_id))])?;
     Ok(())
 }
 
 #[wasm_bindgen(js_name = selectObjects)]
 pub fn select_objects(item_ids: Vec<u32>) -> Result<(), JsError> {
     command(vec![BackendCommand::SetSelection(
-        item_ids.into_iter().map(ItemId).collect(),
+        item_ids.into_iter().map(InternalId).collect(),
     )])?;
     Ok(())
 }
 
 #[wasm_bindgen(js_name = renameObject)]
 pub fn rename_object(item_id: u32, name: String) -> Result<(), JsError> {
-    command(vec![BackendCommand::RenameItem(ItemId(item_id), name)])?;
+    command(vec![BackendCommand::RenameItem(InternalId(item_id), name)])?;
     Ok(())
 }
 
@@ -42,7 +42,7 @@ pub fn edit_transform(
 ) -> Result<(), JsError> {
     // TODO: This might make more sense as 3 separate functions
     command(vec![BackendCommand::EditTransform(
-        ItemId(item_id),
+        InternalId(item_id),
         RelativeTransform {
             scale: (scale_x, scale_y),
             rotation,

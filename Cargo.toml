@@ -40,6 +40,6 @@ resvg = { version = "0.39.0" }
 svgtypes = "0.14.0" # For fonts in resvg
 strum = "0.26.1"
 strum_macros = "0.26.1"
-
+base62 = "2.0.2"
 [profile.dev]
 opt-level = 1

@@ -14,7 +14,7 @@ const routes = [
     },
   },
   {
-    path: '/editor/:type',
+    path: '/editor/:id',
     name: 'Editor',
     component: Pages.EditorSvg,
     meta: {

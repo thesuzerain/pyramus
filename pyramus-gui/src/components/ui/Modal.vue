@@ -39,7 +39,6 @@ const shown = ref(false)
 const actuallyShown = ref(false)
 
 function show() {
-  console.log('show')
   shown.value = true
   setTimeout(() => {
     actuallyShown.value = true

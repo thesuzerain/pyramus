@@ -102,7 +102,6 @@ const canSubmit = computed(() => {
 function handleFileChange(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-  console.log(file)
   if (file) {
     fileValue.value = file
   } else {

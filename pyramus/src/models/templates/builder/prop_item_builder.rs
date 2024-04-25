@@ -1,6 +1,6 @@
 use crate::{
     models::templates::{
-        ids::ItemId,
+        ids::InternalId,
         prop_item::{PropItemImage, PropItemImageData, PropItemText, PropItemType},
         transform::RelativeTransform,
     },
@@ -78,7 +78,7 @@ impl ItemBuilder {
     }
 
     /// Adds a parent to the ItemBuilder
-    pub fn parent(mut self, parent: ItemId) -> Self {
+    pub fn parent(mut self, parent: InternalId) -> Self {
         self.parent = Some(parent);
         self
     }

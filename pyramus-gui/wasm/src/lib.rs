@@ -1,6 +1,6 @@
 use editor::{dispatch_frontend_command, CALLBACKS, RUNTIME};
-use pyramus::command::FrontendCommand;
-use std::panic;
+use pyramus::{command::FrontendCommand, models::templates::ids::PyramusId};
+use std::{panic, str::FromStr};
 use wasm_bindgen::prelude::*;
 
 // TODO: panic handler
@@ -14,38 +14,21 @@ pub mod models;
 pub mod render; // TODO: rename
 
 #[wasm_bindgen(start)]
-pub fn init_app() {
+pub async fn init_app() {
     panic::set_hook(Box::new(console_error_panic_hook::hook));
+    let new_runtime = editor::Runtime::start().await;
     RUNTIME.with(|runtime| {
-        *runtime.borrow_mut() = Some(editor::Runtime::new());
-    });
+        *runtime.borrow_mut() = Some(new_runtime);
+    })
 }
 
-#[wasm_bindgen(js_name = switchProp)]
-pub fn switch_prop() -> Result<(), JsValue> {
+#[wasm_bindgen(js_name = switchEditorBase)]
+pub fn switch_editor_base(id : String) -> Result<(), JsValue> {
+    let id : PyramusId = PyramusId::from_str(&id).map_err(|e| JsValue::from_str(&format!("Could not decode PyramusId {}", e)))?;
     editor::RUNTIME.with(|runtime| {
         let mut runtime = runtime.borrow_mut();
         let runtime = runtime.as_mut().unwrap();
-        runtime.set_prop();
-    });
-
-    // TODO: Reorganize this
-    CALLBACKS.with(|callbacks| {
-        let js_callbacks = callbacks.borrow();
-        let command = FrontendCommand::Rerender;
-        dispatch_frontend_command(&js_callbacks, command)?;
-        Ok::<(), JsError>(())
-    })?;
-
-    Ok(())
-}
-
-#[wasm_bindgen(js_name = switchBlueprint)]
-pub fn switch_blueprint() -> Result<(), JsValue> {
-    editor::RUNTIME.with(|runtime| {
-        let mut runtime = runtime.borrow_mut();
-        let runtime = runtime.as_mut().unwrap();
-        runtime.set_blueprint();
+        runtime.set_base(id)?;
         Ok::<(), JsError>(())
     })?;
 
@@ -86,11 +69,11 @@ pub fn get_stage_json() -> Result<String, JsValue> {
         let runtime = runtime
             .as_ref()
             .ok_or_else(|| JsValue::from_str("No runtime found"))?;
-        let base_item = &runtime.stage.base;
+        let base = &runtime.stage.base;
         // TODO: This creates some huge JSON strings for images, so we need to cache those somehow.
         // (Perhaps online- or in browser cache?)
         let stage_json =
-            serde_json::to_string(base_item).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+            serde_json::to_string(base).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
         Ok(stage_json)
     })
 }

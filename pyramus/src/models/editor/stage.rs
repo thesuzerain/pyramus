@@ -1,7 +1,7 @@
-use super::{base_item::BaseItem, item::StageItem, staging::Staging};
+use super::{base_item::Base, item::StageItem, staging::Staging};
 use crate::{
     input::MouseState,
-    models::templates::{blueprint::Blueprint, ids::ItemId, prop::Prop},
+    models::templates::{blueprint::Blueprint, ids::InternalId, prop::Prop},
 };
 
 /// The stage is the main area where items are placed and manipulated.
@@ -11,8 +11,8 @@ use crate::{
 /// - A blueprint (a collection of props)
 #[derive(Debug)]
 pub struct Stage {
-    pub base: BaseItem, // TODO: Should be able to be a blueprint or a prop. Stage<T> where T is 'stageable'
-    pub selection: Vec<ItemId>,
+    pub base: Base, // TODO: Should be able to be a blueprint or a prop. Stage<T> where T is 'stageable'
+    pub selection: Vec<InternalId>,
 
     // TODO: Should be exported to some other 'state'-type mechansms
     pub mouse_state: MouseState,
@@ -24,26 +24,17 @@ impl Stage {
     // TODO: Background color should be optional, or a pattern (like how Photoshop does transparency)
 
     // TODO: This should become trait again, with one build()
-    /// Create a new stage with a prop as the base item
-    pub fn build_prop(base: Prop) -> Stage {
+    /// Create a new stage from a base
+    pub fn new(base: Base) -> Stage {
         Stage {
-            base: BaseItem::Prop(base),
-            selection: Vec::new(),
-            mouse_state: MouseState::Idle,
-        }
-    }
-
-    /// Create a new stage with a blueprint as the base item
-    pub fn build_blueprint(base: Blueprint) -> Stage {
-        Stage {
-            base: BaseItem::Blueprint(base),
+            base,
             selection: Vec::new(),
             mouse_state: MouseState::Idle,
         }
     }
 
     /// Sets selected items in the stage
-    pub fn set_selection(&mut self, selection: Vec<ItemId>) {
+    pub fn set_selection(&mut self, selection: Vec<InternalId>) {
         self.selection = selection;
     }
 
@@ -67,7 +58,7 @@ impl Stage {
 
     /// Get the front-most item at the given x,y (in screen coordinates)
     /// None if no item is found
-    pub fn get_front_item_at(&self, x: f32, y: f32, include_root: bool) -> Option<ItemId> {
+    pub fn get_front_item_at(&self, x: f32, y: f32, include_root: bool) -> Option<InternalId> {
         // TODO: We need to add Z-index (render order) support, which will affect how this selects items
         // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker
         // TODO: Caching will help this
@@ -86,7 +77,7 @@ impl Stage {
     }
 
     /// Get the render order of the items in the stage
-    pub fn get_render_order(&self) -> Vec<ItemId> {
+    pub fn get_render_order(&self) -> Vec<InternalId> {
         // TODO: We need to add Z-index (render order) support, which will affect how this selects items
         // Currently, this just uses the children order (last child is on top), which should be used as a tiebreaker
         // TODO: Maybe we should use a BTreeMap here, to keep the order sorted, or a VecDeque to keep the order, or PartialEq implemntation, or something
@@ -98,7 +89,7 @@ impl Stage {
         render_order
     }
 
-    fn get_render_order_recursive(stage: &Stage, item_id: ItemId) -> Vec<ItemId> {
+    fn get_render_order_recursive(stage: &Stage, item_id: InternalId) -> Vec<InternalId> {
         let item = stage.base.get_item(item_id).unwrap(); // TODO: Handle this unwrap properly
         let mut render_order = vec![item_id];
         for child in item.get_children() {
@@ -111,13 +102,15 @@ impl Stage {
 // TODO: Remove, this is just for testing of WASM rendering before other features are implemented
 pub fn example_stage_prop() -> crate::Result<Stage> {
     let prop = Prop::build_random("Test", 800, 600);
-    let stage = Stage::build_prop(prop);
+    let base = Base::new(prop.into());
+    let stage = Stage::new(base);
     Ok(stage)
 }
 
 // TODO: Remove, this is just for testing of WASM rendering before other features are implemented
 pub fn example_stage_blueprint() -> crate::Result<Stage> {
-    let prop = Blueprint::build_random("Test", 800, 600);
-    let stage = Stage::build_blueprint(prop);
+    let blueprint = Blueprint::build_random("Test", 800, 600);
+    let base = Base::new(blueprint.into());
+    let stage = Stage::new(base);
     Ok(stage)
 }

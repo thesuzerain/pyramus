@@ -2,7 +2,7 @@ use js_sys::Math::random;
 use serde::{Deserialize, Serialize};
 
 use crate::models::editor::{
-    base_item::{BaseItem, BaseTemplate},
+    base_item::{Base, BaseItem, BaseTemplate},
     item::StageItem,
 };
 
@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 /// A blueprint
 /// A structure that contains one or more props, easily modifable to fit a variety of contexts
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Blueprint {
     pub name: String,
 
@@ -38,14 +38,14 @@ impl Blueprint {
 
         // building a "new object"" so we use a baseitem as if it were in a stage
         // Todo: is this the way to do?
-        let mut blueprint = BaseItem::Blueprint(Blueprint {
+        let mut blueprint = Base::new(Blueprint {
             name: name.to_string(),
             template: BaseTemplate {
                 items,
                 root: id,
                 size: (width, height),
             },
-        });
+        }.into());
 
         // Add 3 random props
         for _ in 0..3 {
@@ -61,7 +61,7 @@ impl Blueprint {
         // TODO ugly
         // maybe this function could return BaseItem instead of Blueprint
 
-        if let BaseItem::Blueprint(blueprint) = blueprint {
+        if let BaseItem::Blueprint(blueprint) = blueprint.item {
             blueprint
         } else {
             panic!("Failed to extract blueprint") // TODO: Handle error, or refactor
